@@ -16,9 +16,19 @@ const DFTArray =
 
 """ Dimensions and units of interest for DFT """
 const Dimensioned = (
-    :Density => :ρ, :Potential => :Eₕ
+    :Density                         => :ρ,
+    :DensityGradient                 => :∇ρ,
+    :FirstDensityDerivative          => :∂ϵ_∂ρ,
+    :FirstGradientDerivative         => :∂ϵ_∂∇ρ,
+    :SecondDensityDerivative         => :∂²ϵ_∂ρ²,
+    :SecondGradientDerivative        => :∂²ϵ_∂∇ρ²,
+    :SecondDensityGradientDerivative => :∂²ϵ_∂ρ∂∇ρ,
+    :ThirdDensityDerivative          => :∂³ϵ_∂ρ³,
+    :ThirdGradientDerivative         => :∂³ϵ_∂∇ρ³,
+    :ThirdDensity2GradientDerivative => :∂³ϵ_∂ρ²∂∇ρ,
+    :ThirdDensityGradient2Derivative => :∂³ϵ_∂ρ∂∇ρ²,
+    :Potential                       => :Eₕ
 )
 include("DispatchDimensions.jl")
 include("DispatchHartree.jl")
-
 end

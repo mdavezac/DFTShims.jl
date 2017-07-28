@@ -8,6 +8,7 @@ const UH = UnitfulHartree
 macro lintpragma(s) end
 @lintpragma("Ignore use of undeclared variable T")
 @lintpragma("Ignore use of undeclared variable N")
+@lintpragma("Ignore use of undeclared variable Eₕ")
 
 for (name, abbr) in Dimensioned
     DAA = Symbol("$(name)AxisArray")
@@ -20,6 +21,8 @@ for (name, abbr) in Dimensioned
         const $DA = Dimensions.$DA{T, N, typeof(UH.$abbr)} where N where T
     end
 end
+const ϵ = Eₕ
+
 """ Dimenional dispatch types for scalars """
 module Scalars
     using ...Dispatch: Dimensioned, Hartree
@@ -29,6 +32,7 @@ module Scalars
             const $abbr = $name
         end
     end
+    const ϵ = Eₕ
 end
 
 """ Dimenional dispatch types for Arrays """
@@ -40,6 +44,7 @@ module Arrays
             const $abbr = $name
         end
     end
+    const ϵ = Eₕ
 end
 
 """ Dimenional dispatch types for AxisArrays """
@@ -51,6 +56,7 @@ module AxisArrays
             const $abbr = $name
         end
     end
+    const ϵ = Eₕ
 end
 
 """ Dimenional dispatch types for DenseArrays """
@@ -62,6 +68,7 @@ module DenseArrays
             const $abbr = $name
         end
     end
+    const ϵ = Eₕ
 end
 
 end
