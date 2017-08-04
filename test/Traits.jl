@@ -28,18 +28,18 @@ end
 end
 
 @testset "components" begin
-    @test components(UnitfulHartree.ρ, Unpolarized) == (:ρ,)
+    @test @inferred(components(UnitfulHartree.ρ, Unpolarized)) == (:ρ,)
     @test all(components(UnitfulHartree.ρ, Polarized) .== (:α, :β))
     @test length(components(Dispatch.Dimensions.Scalars.∂ϵ_∂σ, Unpolarized)) == 1
-    @test length(components(UnitfulHartree.∂ϵ_∂σ, Polarized)) == 3
-    @test length(components(UnitfulHartree.∂²ϵ_∂ρ², Polarized)) == 3
-    @test length(components(UnitfulHartree.∂²ϵ_∂ρ∂σ, Unpolarized)) == 1
-    @test length(components(UnitfulHartree.∂²ϵ_∂ρ∂σ, Polarized)) == 6
-    @test length(components(UnitfulHartree.∂²ϵ_∂σ², Polarized)) == 6
-    @test length(components(UnitfulHartree.∂³ϵ_∂ρ³, Polarized)) == 4
-    @test length(components(UnitfulHartree.∂³ϵ_∂ρ²∂σ, Polarized)) == 9
-    @test length(components(UnitfulHartree.∂³ϵ_∂ρ∂σ², Polarized)) == 12
-    @test length(components(UnitfulHartree.∂³ϵ_∂σ³, Polarized)) == 10
+    @test length(@inferred(components(UnitfulHartree.∂ϵ_∂σ, Polarized))) == 3
+    @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂ρ², Polarized))) == 3
+    @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂ρ∂σ, Unpolarized))) == 1
+    @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂ρ∂σ, Polarized))) == 6
+    @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂σ², Polarized))) == 6
+    @test length(@inferred(components(UnitfulHartree.∂³ϵ_∂ρ³, Polarized))) == 4
+    @test length(@inferred(components(UnitfulHartree.∂³ϵ_∂ρ²∂σ, Polarized))) == 9
+    @test length(@inferred(components(UnitfulHartree.∂³ϵ_∂ρ∂σ², Polarized))) == 12
+    @test length(@inferred(components(UnitfulHartree.∂³ϵ_∂σ³, Polarized))) == 10
 end
 
 @testset "functional category" begin
