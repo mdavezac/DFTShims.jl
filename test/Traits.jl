@@ -23,8 +23,8 @@ end
     @test is_spin_polarized(typeof(spin))
     @test !is_spin_polarized(typeof(nospin))
 
-    @test Polarization(spin) === Polarized
-    @test Polarization(nospin) === Unpolarized
+    @test @inferred(PolarizationCategory(spin)) === Polarized
+    @test @inferred(PolarizationCategory(nospin)) === Unpolarized
 end
 
 @testset "components" begin
@@ -43,13 +43,13 @@ end
 end
 
 @testset "functional category" begin
-    @test functional_category(UnitfulHartree.ρ) === LDA
-    @test functional_category(UnitfulHartree.∂ϵ_∂σ) === GGA
-    @test functional_category(UnitfulHartree.∂²ϵ_∂ρ²) === LDA
-    @test functional_category(UnitfulHartree.∂²ϵ_∂ρ∂σ) === GGA
-    @test functional_category(Dispatch.Dimensions.Scalars.∂²ϵ_∂σ²) === GGA
-    @test functional_category(UnitfulHartree.∂³ϵ_∂ρ³) === LDA
-    @test functional_category(UnitfulHartree.∂³ϵ_∂ρ²∂σ) === GGA
-    @test functional_category(UnitfulHartree.∂³ϵ_∂ρ∂σ²) === GGA
-    @test functional_category(UnitfulHartree.∂³ϵ_∂σ³) === GGA
+    @test FunctionalCategory(UnitfulHartree.ρ) === LDA
+    @test FunctionalCategory(UnitfulHartree.∂ϵ_∂σ) === GGA
+    @test FunctionalCategory(UnitfulHartree.∂²ϵ_∂ρ²) === LDA
+    @test FunctionalCategory(UnitfulHartree.∂²ϵ_∂ρ∂σ) === GGA
+    @test FunctionalCategory(Dispatch.Dimensions.Scalars.∂²ϵ_∂σ²) === GGA
+    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ³) === LDA
+    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ²∂σ) === GGA
+    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ∂σ²) === GGA
+    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂σ³) === GGA
 end

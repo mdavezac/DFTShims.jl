@@ -1,12 +1,13 @@
 module Traits
-export has_axis, is_spin_polarized, Polarization, Polarized, Unpolarized, components
-export PolarizationCategory, FunctionalCategory, LDA, GGA, functional_category
+export has_axis, is_spin_polarized, Polarized, Unpolarized, components
+export PolarizationCategory, FunctionalCategory, LDA, GGA
 
 using DocStringExtensions
 using AxisArrays
 using Unitful
 using ..UnitfulHartree
 using ..Dispatch
+const DD = Dispatch.Dimensions
 
 macro lintpragma(s) end
 @lintpragma("Ignore use of undeclared variable D")
@@ -31,13 +32,13 @@ axis should be a tuple, e.g.:
 
 `typeof(Axis(:spin, (:+, :-))) === Axis{:spin, Tuple{Symbol, Symbol}}`
 """
-function is_spin_polarized(array::AxisArray)
+is_spin_polarized(array::AxisArray) = begin
     has_axis(array, Axis{:spin}) || return false
     vals = axisvalues(axes(array, Axis{:spin}))[1]
     return length(vals) == 2
 end
 
-function is_spin_polarized(array::Type{<: AxisArray})
+is_spin_polarized(array::Type{<: AxisArray}) = begin
     index = findfirst(axisnames(array), :spin)
     index == 0 && return false
     axis = array.parameters[end].parameters[index]
@@ -51,8 +52,8 @@ const Unpolarized = Val{:Unpolarized}
 """ Union of al polarization traits """
 const PolarizationCategory = Union{Polarized, Unpolarized}
 """ Figures whether input is polarized or not """
-Polarization(array::AxisArray) = Polarization(typeof(array))
-Polarization(array::Type{<:AxisArray}) = is_spin_polarized(array) ? Polarized: Unpolarized
+@generated (::Type{PolarizationCategory})(array::AxisArray) =
+    is_spin_polarized(array) ? :(Polarized) : :(Unpolarized)
 
 """ Trait identifying the LDA functional category """
 const LDA = Val{:lda}
@@ -71,21 +72,21 @@ Figures out functional category, whether LDA or GGA
 
 $(SIGNATURES)
 """
-functional_category(::typeof(dimension(UH.ρ))) = LDA
-functional_category(::typeof(dimension(UH.∂ϵ_∂ρ))) = LDA
-functional_category(::typeof(dimension(UH.∂²ϵ_∂ρ²))) = LDA
-functional_category(::typeof(dimension(UH.∂³ϵ_∂ρ³))) = LDA
-functional_category(::typeof(dimension(UH.σ))) = GGA
-functional_category(::typeof(dimension(UH.∂ϵ_∂σ))) = GGA
-functional_category(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ))) = GGA
-functional_category(::typeof(dimension(UH.∂²ϵ_∂σ²))) = GGA
-functional_category(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ))) = GGA
-functional_category(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²))) = GGA
-functional_category(::typeof(dimension(UH.∂³ϵ_∂σ³))) = GGA
-const DD = Dispatch.Dimensions
-functional_category(u::Unitful.FreeUnits) = functional_category(dimension(u))
-functional_category(u::DD.Scalars.All) = functional_category(dimension(u))
-functional_category(T::Type{<: DD.Scalars.All}) = functional_category(unitful_dimensions(T))
+(::Type{FunctionalCategory})(::typeof(dimension(UH.ρ))) = LDA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂ρ))) = LDA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ²))) = LDA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ³))) = LDA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.σ))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂σ))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂σ²))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂σ³))) = GGA
+(::Type{FunctionalCategory})(u::Unitful.FreeUnits) = FunctionalCategory(dimension(u))
+(::Type{FunctionalCategory})(u::DD.Scalars.All) = FunctionalCategory(dimension(u))
+(::Type{FunctionalCategory})(T::Type{<: DD.Scalars.All}) =
+    FunctionalCategory(unitful_dimensions(T))
 
 """
 Labels of the standard components for LDA and GGA inputs
