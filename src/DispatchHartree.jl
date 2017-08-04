@@ -21,7 +21,6 @@ for (name, abbr) in Dimensioned
         const $DA = Dimensions.$DA{T, N, typeof(UH.$abbr)} where N where T
     end
 end
-const ϵ = Eₕ
 
 """ Dimenional dispatch types for scalars """
 module Scalars

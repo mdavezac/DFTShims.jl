@@ -21,26 +21,26 @@ macro lintpragma(s) end
 @lintpragma("Ignore use of undeclared variable rₑ")
 @lintpragma("Ignore use of undeclared variable Density")
 @lintpragma("Ignore use of undeclared variable ρ")
-@lintpragma("Ignore use of undeclared variable DensityGradient")
-@lintpragma("Ignore use of undeclared variable ∇ρ")
+@lintpragma("Ignore use of undeclared variable ContractedDensityGradient")
+@lintpragma("Ignore use of undeclared variable σ")
 @lintpragma("Ignore use of undeclared variable FirstDensityDerivative")
 @lintpragma("Ignore use of undeclared variable ∂ϵ_∂ρ")
 @lintpragma("Ignore use of undeclared variable FirstGradientDerivative")
-@lintpragma("Ignore use of undeclared variable ∂ϵ_∂∇ρ")
+@lintpragma("Ignore use of undeclared variable ∂ϵ_∂σ")
 @lintpragma("Ignore use of undeclared variable SecondDensityDerivative")
 @lintpragma("Ignore use of undeclared variable ∂²ϵ_∂ρ²")
 @lintpragma("Ignore use of undeclared variable SecondGradientDerivative")
-@lintpragma("Ignore use of undeclared variable ∂²ϵ_∂∇ρ²")
+@lintpragma("Ignore use of undeclared variable ∂²ϵ_∂σ²")
 @lintpragma("Ignore use of undeclared variable SecondDensityGradientDerivative")
-@lintpragma("Ignore use of undeclared variable ∂²ϵ_∂ρ∂∇ρ")
+@lintpragma("Ignore use of undeclared variable ∂²ϵ_∂ρ∂σ")
 @lintpragma("Ignore use of undeclared variable ThirdDensityDerivative")
 @lintpragma("Ignore use of undeclared variable ∂³ϵ_∂ρ³")
 @lintpragma("Ignore use of undeclared variable ThirdGradientDerivative")
-@lintpragma("Ignore use of undeclared variable ∂³ϵ_∂∇ρ³")
+@lintpragma("Ignore use of undeclared variable ∂³ϵ_∂σ³")
 @lintpragma("Ignore use of undeclared variable ThirdDensity2GradientDerivative")
-@lintpragma("Ignore use of undeclared variable ∂³ϵ_∂ρ²∂∇ρ")
+@lintpragma("Ignore use of undeclared variable ∂³ϵ_∂ρ²∂σ")
 @lintpragma("Ignore use of undeclared variable ThirdDensityGradient2Derivative")
-@lintpragma("Ignore use of undeclared variable ∂³ϵ_∂ρ∂∇ρ²")
+@lintpragma("Ignore use of undeclared variable ∂³ϵ_∂ρ∂σ²")
 
 @unit mₑ "mₑ" ElectronMass 9.1093835611e-31*u"kg" false
 @unit e₀ "eₒ" ElementaryCharge 1.602176620898e-19*u"C" false
@@ -55,17 +55,17 @@ const mₚ = 1836.15mₑ
 const μ_b = e₀*ħ/(2mₑ)
 const ϵ₀ = 1/(4π*kₑ)
 
-@unit ρ          "ρ"          Density                         (1a₀)^-3       false
-@unit ∇ρ         "∇ρ"         DensityGradient                 (1a₀)^-4       false
-@unit ∂ϵ_∂ρ      "∂ϵ_∂ρ"      FirstDensityDerivative          (1Eₕ)*(1a₀)^3  false
-@unit ∂ϵ_∂∇ρ     "∂ϵ_∂∇ρ"     FirstGradientDerivative         (1Eₕ)*(1a₀)^4  false
-@unit ∂²ϵ_∂ρ²    "∂²ϵ_∂ρ²"    SecondDensityDerivative         (1Eₕ)*(1a₀)^6  false
-@unit ∂²ϵ_∂∇ρ²   "∂²ϵ_∂∇ρ²"   SecondGradientDerivative        (1Eₕ)*(1a₀)^8  false
-@unit ∂²ϵ_∂ρ∂∇ρ  "∂²ϵ_∂ρ∂∇ρ"  SecondDensityGradientDerivative (1Eₕ)*(1a₀)^7  false
-@unit ∂³ϵ_∂ρ³    "∂³ϵ_∂ρ³"    ThirdDensityDerivative          (1Eₕ)*(1a₀)^9  false
-@unit ∂³ϵ_∂∇ρ³   "∂³ϵ_∂∇ρ³"   ThirdGradientDerivative         (1Eₕ)*(1a₀)^12 false
-@unit ∂³ϵ_∂ρ²∂∇ρ "∂³ϵ_∂ρ²∂∇ρ" ThirdDensity2GradientDerivative (1Eₕ)*(1a₀)^10 false
-@unit ∂³ϵ_∂ρ∂∇ρ² "∂³ϵ_∂ρ∂∇ρ²" ThirdDensityGradient2Derivative (1Eₕ)*(1a₀)^11 false
+@unit ρ         "ρ"         Density                         (1a₀)^-3       false
+@unit σ         "σ"         ContractedDensityGradient       (1a₀)^-8       false
+@unit ∂ϵ_∂ρ     "∂ϵ_∂ρ"     FirstDensityDerivative          (1Eₕ)*(1a₀)^3  false
+@unit ∂ϵ_∂σ     "∂ϵ_∂σ"     FirstGradientDerivative         (1Eₕ)*(1a₀)^8  false
+@unit ∂²ϵ_∂ρ²   "∂²ϵ_∂ρ²"   SecondDensityDerivative         (1Eₕ)*(1a₀)^6  false
+@unit ∂²ϵ_∂σ²   "∂²ϵ_∂σ²"   SecondGradientDerivative        (1Eₕ)*(1a₀)^16 false
+@unit ∂²ϵ_∂ρ∂σ  "∂²ϵ_∂ρ∂σ"  SecondDensityGradientDerivative (1Eₕ)*(1a₀)^11 false
+@unit ∂³ϵ_∂ρ³   "∂³ϵ_∂ρ³"   ThirdDensityDerivative          (1Eₕ)*(1a₀)^9  false
+@unit ∂³ϵ_∂σ³   "∂³ϵ_∂σ³"   ThirdGradientDerivative         (1Eₕ)*(1a₀)^24 false
+@unit ∂³ϵ_∂ρ²∂σ "∂³ϵ_∂ρ²∂σ" ThirdDensity2GradientDerivative (1Eₕ)*(1a₀)^14 false
+@unit ∂³ϵ_∂ρ∂σ² "∂³ϵ_∂ρ∂σ²" ThirdDensityGradient2Derivative (1Eₕ)*(1a₀)^19 false
 
 
 # Some gymnastics required here because if we precompile, we cannot add to
