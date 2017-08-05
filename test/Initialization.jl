@@ -6,33 +6,35 @@ const DH = DFTShims.Dispatch.Hartree
 const Dρ = DH.Scalars.ρ
 const SIZES = 10, 2
 const AXES = Axis{:radius}(1:SIZES[1]), Axis{:bb}((:α, :β))
+const polarizated = Polarized()
+const unpolarizated = Unpolarized()
 
 @testset "Unpolarized" begin
     ρ = zeros(Dρ{Int64}, false, SIZES...)
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == SIZES
 
-    ρ = zeros(Dρ{Int64}, Unpolarized, SIZES[1], AXES[1], SIZES[2])
+    ρ = zeros(Dρ{Int64}, unpolarized, SIZES[1], AXES[1], SIZES[2])
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == SIZES
     @test axes(ρ, 1) == AXES[1]
 
-    ρ = zeros(Dρ{Int64}, Unpolarized, SIZES..., AXES[1], AXES[2])
+    ρ = zeros(Dρ{Int64}, unpolarized, SIZES..., AXES[1], AXES[2])
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == SIZES
     @test axes(ρ, 1) == AXES[1]
     @test axes(ρ, 2) == AXES[2]
 
-    @test_throws ArgumentError zeros(Dρ{Int64}, Unpolarized, SIZES..., AXES..., AXES[1])
+    @test_throws ArgumentError zeros(Dρ{Int64}, unpolarized, SIZES..., AXES..., AXES[1])
 
-    @inferred zeros(Dρ{Int64}, Unpolarized, SIZES)
-    @inferred zeros(Dρ{Int64}, Unpolarized, SIZES, AXES)
-    @inferred zeros(Dρ{Int64}, Unpolarized, SIZES, AXES[1:1])
+    @inferred zeros(Dρ{Int64}, unpolarized, SIZES)
+    @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES)
+    @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES[1:1])
 end
 
 @testset "Polarized" begin
     @testset "axis names" begin
-        comps = components(Dρ{Int64}, Polarized)
+        comps = components(Dρ{Int64}, polarized)
         extra_axis = Axis{:a}((1, 2))
         spin_axis = Axis{:spin}((:α, :β)) 
         defaults(a) = AxisArrays.default_axes(zeros((SIZES..., 2)), a)
@@ -49,14 +51,14 @@ end
     @test size(ρ) == (SIZES..., 2)
     @test axes(ρ, 3) == Axis{:spin}((:α, :β))
 
-    ρ = zeros(Dρ{Int64}, Polarized, SIZES..., AXES...)
+    ρ = zeros(Dρ{Int64}, polarized, SIZES..., AXES...)
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == (SIZES..., 2)
     @test axes(ρ, 1) == AXES[1]
     @test axes(ρ, 2) == AXES[2]
     @test axes(ρ, 3) == Axis{:spin}((:α, :β))
 
-    ρ = zeros(Dρ{Int64}, Polarized, SIZES..., AXES..., Axis{:aa}((1, 2)))
+    ρ = zeros(Dρ{Int64}, polarized, SIZES..., AXES..., Axis{:aa}((1, 2)))
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == (SIZES..., 2)
     @test axes(ρ, 1) == AXES[1]
@@ -64,12 +66,12 @@ end
     @test axes(ρ, 3) == Axis{:aa}((1, 2))
 
     const D∂³ϵ_∂ρ∂σ² = DH.Scalars.∂³ϵ_∂ρ∂σ²
-    ∂³ϵ_∂ρ∂σ² = zeros(D∂³ϵ_∂ρ∂σ²{Int16}, Polarized, SIZES..., AXES...)
+    ∂³ϵ_∂ρ∂σ² = zeros(D∂³ϵ_∂ρ∂σ²{Int16}, polarized, SIZES..., AXES...)
     @test size(∂³ϵ_∂ρ∂σ²) == (SIZES..., 12)
     @test axes(∂³ϵ_∂ρ∂σ², 1) == AXES[1]
     @test axes(∂³ϵ_∂ρ∂σ², 2) == AXES[2]
 
-    @inferred zeros(Dρ{Int64}, Polarized, SIZES)
-    @inferred zeros(Dρ{Int64}, Polarized, SIZES, AXES)
-    @inferred zeros(Dρ{Int64}, Polarized, SIZES, AXES[1:1])
+    @inferred zeros(Dρ{Int64}, polarized, SIZES)
+    @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES)
+    @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES[1:1])
 end

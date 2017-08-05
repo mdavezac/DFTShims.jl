@@ -53,7 +53,7 @@ const Unpolarized = Val{:Unpolarized}
 const PolarizationCategory = Union{Polarized, Unpolarized}
 """ Figures whether input is polarized or not """
 @generated (::Type{PolarizationCategory})(array::AxisArray) =
-    is_spin_polarized(array) ? :(Polarized) : :(Unpolarized)
+    is_spin_polarized(array) ? :(Polarized()) : :(Unpolarized())
 
 """ Trait identifying the LDA functional category """
 const LDA = Val{:lda}
@@ -97,45 +97,43 @@ $(SIGNATURES)
 the contracted gradient density (∇ρ⋅∇ρ), and σαα (∇α⋅∇α), σαβ, σββ  to the polarized
 contracted gradient densities.
 """
-components(::typeof(dimension(UH.ρ)), ::Type{Unpolarized}) = (:ρ,)
-components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::Type{Unpolarized}) = (:∂ρ,)
-components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::Type{Unpolarized}) = (:∂ρ²,)
-components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::Type{Unpolarized}) = (:∂ρ³,)
-components(::typeof(dimension(UH.ρ)), ::Type{Polarized}) = :α, :β
-components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::Type{Polarized}) = :∂α, :∂β
-components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::Type{Polarized}) = :∂α², :∂α∂β, :∂²β 
-components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::Type{Polarized}) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
-components(::typeof(dimension(UH.σ)), ::Type{Polarized}) = :σαα, :σαβ, :σββ
-components(::typeof(dimension(UH.∂ϵ_∂σ)), ::Type{Polarized}) = :∂σαα, :∂σαβ, :∂σββ
-components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::Type{Polarized}) = 
+components(::typeof(dimension(UH.ρ)), ::Unpolarized) = (:ρ,)
+components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::Unpolarized) = (:∂ρ,)
+components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::Unpolarized) = (:∂ρ²,)
+components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::Unpolarized) = (:∂ρ³,)
+components(::typeof(dimension(UH.ρ)), ::Polarized) = :α, :β
+components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::Polarized) = :∂α, :∂β
+components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::Polarized) = :∂α², :∂α∂β, :∂²β 
+components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::Polarized) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
+components(::typeof(dimension(UH.σ)), ::Polarized) = :σαα, :σαβ, :σββ
+components(::typeof(dimension(UH.∂ϵ_∂σ)), ::Polarized) = :∂σαα, :∂σαβ, :∂σββ
+components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::Polarized) = 
     :∂α∂σαα, :∂α∂σαβ, :∂α∂σββ, :∂β∂σαα, :∂β∂σαβ, :∂β∂σββ
-components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::Type{Polarized}) =
+components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::Polarized) =
     :∂σαα², :∂σαα∂σαβ, :∂σαα∂σββ, :∂σαβ², :∂σαβσββ, :∂σββ² 
-components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::Type{Polarized}) = (
+components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::Polarized) = (
     :∂α²∂σαα, :∂α²∂σαβ, :∂α²∂σββ,
     :∂α∂β∂σαα, :∂α∂β∂σαβ, :∂α∂β∂σββ,
     :∂β²∂σαα, :∂β²∂σαβ, :∂β²∂σββ
 )
-components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::Type{Polarized}) = (
+components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::Polarized) = (
     :∂α∂σαα², :∂α∂σαα∂σαβ, :∂α∂σαα∂σββ, :∂α∂σαβ², :∂α∂σαβσββ, :∂α∂σββ²,
     :∂β∂σαα², :∂β∂σαα∂σαβ, :∂β∂σαα∂σββ, :∂β∂σαβ², :∂β∂σαβσββ, :∂β∂σββ² 
 )
-components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::Type{Polarized}) = (
+components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::Polarized) = (
     :∂σαα³, :∂σαα²∂σαβ, :∂σαα²∂σββ, :∂σαα∂σαβ², :∂σαα∂σαβ∂σββ, :∂σαα∂σββ², 
     :∂σαβ³, :∂σαβ²∂σββ, :∂σαβ∂σββ², :∂σββ³
 )
-components(::typeof(dimension(UH.σ)), ::Type{Unpolarized}) = (:σ,)
-components(::typeof(dimension(UH.∂ϵ_∂σ)), ::Type{Unpolarized}) = (:∂σ,)
-components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::Type{Unpolarized}) = (:∂ρ∂σ,)
-components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::Type{Unpolarized}) = (:∂σ²,)
-components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::Type{Unpolarized}) = (:∂ρ²∂σ,)
-components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::Type{Unpolarized}) = (:∂ρ∂σ²,)
-components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::Type{Unpolarized}) = (:∂σ³,)
+components(::typeof(dimension(UH.σ)), ::Unpolarized) = (:σ,)
+components(::typeof(dimension(UH.∂ϵ_∂σ)), ::Unpolarized) = (:∂σ,)
+components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::Unpolarized) = (:∂ρ∂σ,)
+components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::Unpolarized) = (:∂σ²,)
+components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::Unpolarized) = (:∂ρ²∂σ,)
+components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::Unpolarized) = (:∂ρ∂σ²,)
+components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::Unpolarized) = (:∂σ³,)
 
-components(u::Unitful.FreeUnits, P::Type{<:PolarizationCategory}) =
-    components(dimension(u), P)
-components(u::DD.Scalars.All, P::Type{<:PolarizationCategory}) =
-    components(dimension(u), P)
-components(T::Type{<: DD.Scalars.All}, P::Type{<: PolarizationCategory}) =
+components(u::Unitful.FreeUnits, P::PolarizationCategory) = components(dimension(u), P)
+components(u::DD.Scalars.All, P::PolarizationCategory) = components(dimension(u), P)
+components(T::Type{<: DD.Scalars.All}, P::PolarizationCategory) =
     components(unitful_dimensions(T), P)
 end
