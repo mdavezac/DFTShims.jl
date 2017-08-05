@@ -19,11 +19,11 @@ const unpolarized = Unpolarized()
 end
 
 @testset "spin polarization" begin
-    @test is_spin_polarized(spin)
-    @test !is_spin_polarized(nospin)
+    @test @inferred is_spin_polarized(spin)
+    @test ! @inferred is_spin_polarized(nospin)
 
-    @test is_spin_polarized(typeof(spin))
-    @test !is_spin_polarized(typeof(nospin))
+    @test @inferred is_spin_polarized(typeof(spin))
+    @test ! @inferred is_spin_polarized(typeof(nospin))
 
     @test @inferred(PolarizationCategory(spin)) === polarized
     @test @inferred(PolarizationCategory(nospin)) === unpolarized

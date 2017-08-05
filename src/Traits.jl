@@ -12,6 +12,9 @@ const DD = Dispatch.Dimensions
 macro lintpragma(s) end
 @lintpragma("Ignore use of undeclared variable D")
 @lintpragma("Ignore use of undeclared variable unitful_dimensions")
+@lintpragma("Ignore use of undeclared variable Q")
+@lintpragma("Ignore use of undeclared variable T")
+@lintpragma("Ignore unused array")
 
 const UH = UnitfulHartree
 
@@ -22,8 +25,11 @@ has_axis(array::Type{<:AxisArray}, name::Symbol) = has_axis(array, Axis{name})
 has_axis(a::AxisArray, name::Symbol) = has_axis(typeof(a), name)
     
 
+""" Spin axis should have this type """
+const SpinAxis = Axis{:spin, Q} where {Q <: Tuple{T, T, Vararg{T}} where T}
 """
-True if the array is spin polarized, meaning it has an axis named `:spin` with two values
+True if the array is spin polarized, meaning it has an axis named `:spin` with
+two or more values.
 
 $(SIGNATURES)
 
@@ -31,18 +37,19 @@ Note that if the argument is a type (rather than an instance) then the values of
 axis should be a tuple, e.g.:
 
 `typeof(Axis(:spin, (:+, :-))) === Axis{:spin, Tuple{Symbol, Symbol}}`
-"""
-is_spin_polarized(array::AxisArray) = begin
-    has_axis(array, Axis{:spin}) || return false
-    vals = axisvalues(axes(array, Axis{:spin}))[1]
-    return length(vals) == 2
-end
 
+More explicitly, a spin axis is an `AxisArrays.Axis` instance of type
+`Axis{:spin, <: Tuple{T, T, Vararg{T}} where T}`.
+"""
+is_spin_polarized(::Type{<: SpinAxis}) = true
+is_spin_polarized(::Type{<: Axis}) = false
+is_spin_polarized(ax::Axis) = is_spin_polarized(typeof(ax))
+is_spin_polarized(array::AxisArray) = any(is_spin_polarized.(axes(array)))
 is_spin_polarized(array::Type{<: AxisArray}) = begin
-    index = findfirst(axisnames(array), :spin)
-    index == 0 && return false
-    axis = array.parameters[end].parameters[index]
-    length(axis.parameters[2].parameters) == 2
+    for T in array.parameters[end].parameters
+        is_spin_polarized(T) && return true
+    end
+    false
 end
 
 """ Trait for functions accepting polarized inputs """
