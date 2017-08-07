@@ -1,6 +1,7 @@
 module Traits
 export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components
-export SpinCategory, FunctionalCategory, LDA, GGA
+export SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst, ColinearSpin,
+       ColinearSpinPreferLast, ColinearSpinLast
 
 using DocStringExtensions
 using AxisArrays
@@ -60,9 +61,12 @@ abstract type SpinCategory end
 """ Trait for functions accepting ↑/↓ inputs """
 abstract type ColinearSpin <: SpinCategory end
 
-""" Spin-polarized input where the spin axis is the fastest changing """
+""" Spin-polarized input where the spin axis is always the fastest changing """
 struct ColinearSpinFirst <: ColinearSpin end
-""" Spin-polarized input where the spin axis is the fastest changing
+""" Spin-polarized input where the spin axis is always the slowest changing """
+struct ColinearSpinLast <: ColinearSpin end
+"""
+Spin-polarized input where the spin axis is preferentially the fastest changing
 
 This is the default spin setup.
 """

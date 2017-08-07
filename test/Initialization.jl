@@ -6,8 +6,8 @@ const DH = DFTShims.Dispatch.Hartree
 const Dρ = DH.Scalars.ρ
 const SIZES = 10, 2
 const AXES = Axis{:radius}(1:SIZES[1]), Axis{:bb}((:α, :β))
-const polarizated = ColinearSpin()
-const unpolarizated = SpinDegenerate()
+const polarized = ColinearSpin()
+const unpolarized = SpinDegenerate()
 
 @testset "SpinDegenerate" begin
     ρ = zeros(Dρ{Int64}, false, SIZES...)
@@ -30,6 +30,32 @@ const unpolarizated = SpinDegenerate()
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES)
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES)
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES[1:1])
+end
+
+@testset "Axis Manipulations" begin
+    a = AxisArray(zeros(2, 3))
+    const add_spin_axis = DFTShims.ArrayInitialization.add_spin_axis
+    const replace_spin_axis = DFTShims.ArrayInitialization.replace_spin_axis
+    @test @inferred(add_spin_axis(polarized, (2, 3), 5)) == (2, 3, 5)
+    @test @inferred(add_spin_axis(polarized, AXES, AXES[1])) == (AXES..., AXES[1])
+    @test @inferred(add_spin_axis(ColinearSpinFirst(), AXES, AXES[1])) ==
+        (AXES[1], AXES...)
+
+    saxes = AXES..., Axis{:spin}((:u, :d))
+    actual = @inferred replace_spin_axis(Dρ, polarized, (4, 3, 2), saxes)
+    @test actual == ((4, 3, 2), (AXES..., Axis{:spin}((:α, :β))))
+    actual = @inferred replace_spin_axis(Dρ, ColinearSpinFirst(), (4, 3, 2), saxes)
+    @test actual == ((2, 4, 3), (Axis{:spin}((:α, :β)), AXES...))
+    actual = @inferred replace_spin_axis(Dρ, ColinearSpinLast(), (4, 3, 2), saxes)
+    @test actual == ((4, 3, 2), (AXES..., Axis{:spin}((:α, :β))))
+
+    saxes = Axis{:spin}((:u, :d)), AXES... 
+    actual = @inferred replace_spin_axis(Dρ, polarized, (2, 3, 4), saxes)
+    @test actual == ((2, 3, 4), (Axis{:spin}((:α, :β)), AXES...))
+    actual = @inferred replace_spin_axis(Dρ, ColinearSpinFirst(), (2, 3, 4), saxes)
+    @test actual == ((2, 3, 4), (Axis{:spin}((:α, :β)), AXES...))
+    actual = @inferred replace_spin_axis(Dρ, ColinearSpinLast(), (2, 3, 4), saxes)
+    @test actual == ((3, 4, 2), (AXES..., Axis{:spin}((:α, :β))))
 end
 
 @testset "ColinearSpin" begin

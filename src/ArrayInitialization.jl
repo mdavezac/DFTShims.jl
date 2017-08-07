@@ -3,7 +3,8 @@ module ArrayInitialization
 using Unitful
 using AxisArrays
 using ..UnitfulHartree
-using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory
+using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, ColinearSpin
+using ..Traits: ColinearSpinFirst, ColinearSpinLast, is_spin_polarized
 using ..Dispatch
 
 macro lintpragma(s) end
@@ -65,4 +66,86 @@ _size(T::Type{<: DD.Scalars.All}, ::SpinDegenerate,
 _size(T::Type{<: DD.Scalars.All}, ::ColinearSpin,
       ::SpinDegenerate, object::DD.AxisArrays.All) =
     (size(object)..., length(components(object)))
+
+add_spin_axis(::ColinearSpin, tup::Tuple, axis::Any) = tup..., axis
+add_spin_axis(::ColinearSpinFirst, tup::Tuple, axis::Any) = axis, tup...
+
+@generated replace_spin_axis(T::Type{<: DD.Scalars.All},
+                             S::ColinearSpin, sizes::Tuple, ax::Tuple) = begin
+    @assert(length(sizes.parameters) == length(ax.parameters))
+    index = findfirst(is_spin_polarized, ax.parameters)
+    @assert(index ≠ 0)
+    left = :(sizes, ax)
+    for i in index:length(ax.parameters)
+        left = :(Base.front($(left.args[1])), Base.front($(left.args[2])))
+    end
+    right = :(Base.reverse(sizes), Base.reverse(ax))
+    for i in 1:index
+        right = :(Base.front($(right.args[1])), Base.front($(right.args[2])))
+    end
+    right = :(Base.reverse($(right.args[1])), Base.reverse($(right.args[2])))
+    quote
+        comps = components(T, S)
+        (
+            ($(left.args[1])..., length(comps), $(right.args[1])...),
+            ($(left.args[2])..., Axis{:spin}(comps), $(right.args[2])...)
+        )
+    end
+end
+
+@generated replace_spin_axis(T::Type{<: DD.Scalars.All},
+                             S::ColinearSpinFirst, sizes::Tuple, ax::Tuple) = begin
+    @assert(length(sizes.parameters) == length(ax.parameters))
+    index = findfirst(is_spin_polarized, ax.parameters)
+    @assert(index ≠ 0)
+    left = :(sizes, ax)
+    for i in index:length(ax.parameters)
+        left = :(Base.front($(left.args[1])), Base.front($(left.args[2])))
+    end
+    right = :(Base.reverse(sizes), Base.reverse(ax))
+    for i in 1:index
+        right = :(Base.front($(right.args[1])), Base.front($(right.args[2])))
+    end
+    right = :(Base.reverse($(right.args[1])), Base.reverse($(right.args[2])))
+    quote
+        comps = components(T, S)
+        (
+            (length(comps), $(left.args[1])..., $(right.args[1])...),
+            (Axis{:spin}(comps), $(left.args[2])..., $(right.args[2])...)
+        )
+    end
+end
+
+@generated replace_spin_axis(T::Type{<: DD.Scalars.All},
+                             S::ColinearSpinLast, sizes::Tuple, ax::Tuple) = begin
+    @assert(length(sizes.parameters) == length(ax.parameters))
+    index = findfirst(is_spin_polarized, ax.parameters)
+    @assert(index ≠ 0)
+    left = :(sizes, ax)
+    for i in index:length(ax.parameters)
+        left = :(Base.front($(left.args[1])), Base.front($(left.args[2])))
+    end
+    right = :(Base.reverse(sizes), Base.reverse(ax))
+    for i in 1:index
+        right = :(Base.front($(right.args[1])), Base.front($(right.args[2])))
+    end
+    right = :(Base.reverse($(right.args[1])), Base.reverse($(right.args[2])))
+    quote
+        comps = components(T, S)
+        (
+            ($(left.args[1])..., $(right.args[1])..., length(comps)),
+            ($(left.args[2])..., $(right.args[2])..., Axis{:spin}(comps))
+        )
+    end
+end
+# _similar(T::Type{<: DD.Scalars.All},
+#          wanted::ColinearSpin, has::ColinearSpin,
+#          object::DD.AxisArrays.All) = begin
+#     AxisArray(similar(object.data, T, _size(T, has, object)), _axes(T, has, object))
+# end
+# Base.similar(T::Type{<: DD.Scalars.All}, object::DD.AxisArrays.All) =
+#     _similar(T, SpinCategory(object), SpinCategory(object), object)
+# Base.similar(T::Type{<: DD.Scalars.All},
+#              wanted_pol::SpinCategory, object::DD.AxisArrays.All) =
+#     _similar(T, wanted_po, SpinCategory(object), object)
 end
