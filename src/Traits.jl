@@ -1,6 +1,6 @@
 module Traits
-export has_axis, is_spin_polarized, Polarized, Unpolarized, components
-export PolarizationCategory, FunctionalCategory, LDA, GGA
+export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components
+export SpinCategory, FunctionalCategory, LDA, GGA
 
 using DocStringExtensions
 using AxisArrays
@@ -45,22 +45,55 @@ is_spin_polarized(::Type{<: SpinAxis}) = true
 is_spin_polarized(::Type{<: Axis}) = false
 is_spin_polarized(ax::Axis) = is_spin_polarized(typeof(ax))
 is_spin_polarized(array::AxisArray) = any(is_spin_polarized.(axes(array)))
-is_spin_polarized(array::Type{<: AxisArray}) = begin
+is_spin_polarized(array::Type{<: AxisArray}) = findfirst(is_spin_polarized, array) ≠ 0
+Base.findfirst(::typeof(is_spin_polarized), array::Type{<: AxisArray}) = begin
+    index = 1
     for T in array.parameters[end].parameters
-        is_spin_polarized(T) && return true
+        is_spin_polarized(T) && return index
+        index += 1
     end
-    false
+    0
 end
 
-""" Trait for functions accepting polarized inputs """
-const Polarized = Val{:Polarized}
-""" Trait for functions accepting unpolarized inputs """
-const Unpolarized = Val{:Unpolarized}
-""" Union of al polarization traits """
-const PolarizationCategory = Union{Polarized, Unpolarized}
-""" Figures whether input is polarized or not """
-@generated (::Type{PolarizationCategory})(array::AxisArray) =
-    is_spin_polarized(array) ? :(Polarized()) : :(Unpolarized())
+""" Union of all polarization traits """
+abstract type SpinCategory end
+""" Trait for functions accepting ↑/↓ inputs """
+abstract type ColinearSpin <: SpinCategory end
+
+""" Spin-polarized input where the spin axis is the fastest changing """
+struct ColinearSpinFirst <: ColinearSpin end
+""" Spin-polarized input where the spin axis is the fastest changing
+
+This is the default spin setup.
+"""
+struct ColinearSpinPreferLast <: ColinearSpin end
+
+""" Traits for unpolarized inputs """
+struct SpinDegenerate <: SpinCategory end
+
+""" Looks at axes to figure out the spin category
+
+- no spin-axis -> SpinDegenerate
+- fastest changing dimension -> ColinearSpinFirst
+- other changing dimension -> ColinearSpinPreferLast
+
+"""
+@generated (::Type{SpinCategory})(array::AxisArray) = begin
+    index = findfirst(is_spin_polarized, array)
+    if index == 0
+        :(SpinDegenerate())
+    elseif index == 1
+        :(ColinearSpinFirst())
+    else
+        :(ColinearSpinPreferLast())
+    end
+end
+""" ColinearSpin defaults to settings spin axis in last position
+
+However, if the spin axis is already given, functions following this traits should not move
+it.
+"""
+(::Type{ColinearSpin})() = ColinearSpinPreferLast()
 
 """ Trait identifying the LDA functional category """
 const LDA = Val{:lda}
@@ -104,43 +137,43 @@ $(SIGNATURES)
 the contracted gradient density (∇ρ⋅∇ρ), and σαα (∇α⋅∇α), σαβ, σββ  to the polarized
 contracted gradient densities.
 """
-components(::typeof(dimension(UH.ρ)), ::Unpolarized) = (:ρ,)
-components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::Unpolarized) = (:∂ρ,)
-components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::Unpolarized) = (:∂ρ²,)
-components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::Unpolarized) = (:∂ρ³,)
-components(::typeof(dimension(UH.ρ)), ::Polarized) = :α, :β
-components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::Polarized) = :∂α, :∂β
-components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::Polarized) = :∂α², :∂α∂β, :∂²β 
-components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::Polarized) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
-components(::typeof(dimension(UH.σ)), ::Polarized) = :σαα, :σαβ, :σββ
-components(::typeof(dimension(UH.∂ϵ_∂σ)), ::Polarized) = :∂σαα, :∂σαβ, :∂σββ
-components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::Polarized) = 
+components(::typeof(dimension(UH.ρ)), ::SpinDegenerate) = (:ρ,)
+components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::SpinDegenerate) = (:∂ρ,)
+components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::SpinDegenerate) = (:∂ρ²,)
+components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::SpinDegenerate) = (:∂ρ³,)
+components(::typeof(dimension(UH.ρ)), ::ColinearSpin) = :α, :β
+components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::ColinearSpin) = :∂α, :∂β
+components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::ColinearSpin) = :∂α², :∂α∂β, :∂²β 
+components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::ColinearSpin) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
+components(::typeof(dimension(UH.σ)), ::ColinearSpin) = :σαα, :σαβ, :σββ
+components(::typeof(dimension(UH.∂ϵ_∂σ)), ::ColinearSpin) = :∂σαα, :∂σαβ, :∂σββ
+components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::ColinearSpin) = 
     :∂α∂σαα, :∂α∂σαβ, :∂α∂σββ, :∂β∂σαα, :∂β∂σαβ, :∂β∂σββ
-components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::Polarized) =
+components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::ColinearSpin) =
     :∂σαα², :∂σαα∂σαβ, :∂σαα∂σββ, :∂σαβ², :∂σαβσββ, :∂σββ² 
-components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::Polarized) = (
+components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::ColinearSpin) = (
     :∂α²∂σαα, :∂α²∂σαβ, :∂α²∂σββ,
     :∂α∂β∂σαα, :∂α∂β∂σαβ, :∂α∂β∂σββ,
     :∂β²∂σαα, :∂β²∂σαβ, :∂β²∂σββ
 )
-components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::Polarized) = (
+components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::ColinearSpin) = (
     :∂α∂σαα², :∂α∂σαα∂σαβ, :∂α∂σαα∂σββ, :∂α∂σαβ², :∂α∂σαβσββ, :∂α∂σββ²,
     :∂β∂σαα², :∂β∂σαα∂σαβ, :∂β∂σαα∂σββ, :∂β∂σαβ², :∂β∂σαβσββ, :∂β∂σββ² 
 )
-components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::Polarized) = (
+components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::ColinearSpin) = (
     :∂σαα³, :∂σαα²∂σαβ, :∂σαα²∂σββ, :∂σαα∂σαβ², :∂σαα∂σαβ∂σββ, :∂σαα∂σββ², 
     :∂σαβ³, :∂σαβ²∂σββ, :∂σαβ∂σββ², :∂σββ³
 )
-components(::typeof(dimension(UH.σ)), ::Unpolarized) = (:σ,)
-components(::typeof(dimension(UH.∂ϵ_∂σ)), ::Unpolarized) = (:∂σ,)
-components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::Unpolarized) = (:∂ρ∂σ,)
-components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::Unpolarized) = (:∂σ²,)
-components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::Unpolarized) = (:∂ρ²∂σ,)
-components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::Unpolarized) = (:∂ρ∂σ²,)
-components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::Unpolarized) = (:∂σ³,)
+components(::typeof(dimension(UH.σ)), ::SpinDegenerate) = (:σ,)
+components(::typeof(dimension(UH.∂ϵ_∂σ)), ::SpinDegenerate) = (:∂σ,)
+components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::SpinDegenerate) = (:∂ρ∂σ,)
+components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::SpinDegenerate) = (:∂σ²,)
+components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::SpinDegenerate) = (:∂ρ²∂σ,)
+components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::SpinDegenerate) = (:∂ρ∂σ²,)
+components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::SpinDegenerate) = (:∂σ³,)
 
-components(u::Unitful.FreeUnits, P::PolarizationCategory) = components(dimension(u), P)
-components(u::DD.Scalars.All, P::PolarizationCategory) = components(dimension(u), P)
-components(T::Type{<: DD.Scalars.All}, P::PolarizationCategory) =
+components(u::Unitful.FreeUnits, P::SpinCategory) = components(dimension(u), P)
+components(u::DD.Scalars.All, P::SpinCategory) = components(dimension(u), P)
+components(T::Type{<: DD.Scalars.All}, P::SpinCategory) =
     components(unitful_dimensions(T), P)
 end

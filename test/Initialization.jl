@@ -6,10 +6,10 @@ const DH = DFTShims.Dispatch.Hartree
 const Dρ = DH.Scalars.ρ
 const SIZES = 10, 2
 const AXES = Axis{:radius}(1:SIZES[1]), Axis{:bb}((:α, :β))
-const polarizated = Polarized()
-const unpolarizated = Unpolarized()
+const polarizated = ColinearSpin()
+const unpolarizated = SpinDegenerate()
 
-@testset "Unpolarized" begin
+@testset "SpinDegenerate" begin
     ρ = zeros(Dρ{Int64}, false, SIZES...)
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == SIZES
@@ -32,7 +32,7 @@ const unpolarizated = Unpolarized()
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES[1:1])
 end
 
-@testset "Polarized" begin
+@testset "ColinearSpin" begin
     @testset "axis names" begin
         comps = components(Dρ{Int64}, polarized)
         extra_axis = Axis{:a}((1, 2))

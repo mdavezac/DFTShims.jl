@@ -4,8 +4,8 @@ using Unitful
 
 spin = AxisArray(zeros((10, 2)), Axis{:radius}(0u"m":1u"m":9u"m"), Axis{:spin}((:+, :-)))
 nospin = AxisArray(zeros((10, 2)), Axis{:radius}(0u"m":1u"m":9u"m"), Axis{:n}((1, 2)))
-const polarized = Polarized()
-const unpolarized = Unpolarized()
+const polarized = ColinearSpin()
+const unpolarized = SpinDegenerate()
 
 @testset "has_axis" begin
     @test has_axis(spin, :spin)
@@ -25,8 +25,8 @@ end
     @test @inferred is_spin_polarized(typeof(spin))
     @test ! @inferred is_spin_polarized(typeof(nospin))
 
-    @test @inferred(PolarizationCategory(spin)) === polarized
-    @test @inferred(PolarizationCategory(nospin)) === unpolarized
+    @test @inferred(SpinCategory(spin)) === polarized
+    @test @inferred(SpinCategory(nospin)) === unpolarized
 end
 
 @testset "components" begin
