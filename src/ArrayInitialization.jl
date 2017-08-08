@@ -31,72 +31,56 @@ replace_spin_axis(T::Type{<: DD.Scalars.All}, ::SpinDegenerate,
     sizes, ax
 end
 
+function _move_and_re(name::Symbol, expr::Expr, orig::Integer, final::Integer, n::Integer)
+    result = Expr(:tuple)
+    for i in 1:n
+        i == final && push!(result.args, expr)
+        i != orig && push!(result.args, :($name[$i]))
+    end
+    result
+end
+
 @generated replace_spin_axis(T::Type{<: DD.Scalars.All},
                              S::ColinearSpin, sizes::Tuple, ax::Tuple) = begin
+    @lintpragma("Ignore use of undeclared variable comps")
     @assert length(sizes.parameters) == length(ax.parameters)
     index = findfirst(is_spin_polarized, ax.parameters)
     @assert index ≠ 0
-    left = :(sizes, ax)
-    for i in index:length(ax.parameters)
-        left = :(Base.front($(left.args[1])), Base.front($(left.args[2])))
-    end
-    right = :(Base.reverse(sizes), Base.reverse(ax))
-    for i in 1:index
-        right = :(Base.front($(right.args[1])), Base.front($(right.args[2])))
-    end
-    right = :(Base.reverse($(right.args[1])), Base.reverse($(right.args[2])))
+    d = _move_and_re(:sizes, :(length(comps)), index, index, length(sizes.parameters))
+    a = _move_and_re(:ax, :(Axis{:spin}(comps)), index, index, length(sizes.parameters))
     quote
         comps = components(T, S)
-        (
-            ($(left.args[1])..., length(comps), $(right.args[1])...),
-            ($(left.args[2])..., Axis{:spin}(comps), $(right.args[2])...)
-        )
+        ($d, $a)
     end
 end
 
 @generated replace_spin_axis(T::Type{<: DD.Scalars.All},
                              S::ColinearSpinFirst, sizes::Tuple, ax::Tuple) = begin
+    @lintpragma("Ignore use of undeclared variable comps")
     @assert(length(sizes.parameters) == length(ax.parameters))
     index = findfirst(is_spin_polarized, ax.parameters)
     @assert(index ≠ 0)
-    left = :(sizes, ax)
-    for i in index:length(ax.parameters)
-        left = :(Base.front($(left.args[1])), Base.front($(left.args[2])))
-    end
-    right = :(Base.reverse(sizes), Base.reverse(ax))
-    for i in 1:index
-        right = :(Base.front($(right.args[1])), Base.front($(right.args[2])))
-    end
-    right = :(Base.reverse($(right.args[1])), Base.reverse($(right.args[2])))
+    d = _move_and_re(:sizes, :(length(comps)), index, 1, length(sizes.parameters))
+    a = _move_and_re(:ax, :(Axis{:spin}(comps)), index, 1, length(sizes.parameters))
     quote
         comps = components(T, S)
-        (
-            (length(comps), $(left.args[1])..., $(right.args[1])...),
-            (Axis{:spin}(comps), $(left.args[2])..., $(right.args[2])...)
-        )
+        ($d, $a)
     end
 end
 
 @generated replace_spin_axis(T::Type{<: DD.Scalars.All},
                              S::ColinearSpinLast, sizes::Tuple, ax::Tuple) = begin
+    @lintpragma("Ignore use of undeclared variable comps")
     @assert(length(sizes.parameters) == length(ax.parameters))
     index = findfirst(is_spin_polarized, ax.parameters)
     @assert(index ≠ 0)
-    left = :(sizes, ax)
-    for i in index:length(ax.parameters)
-        left = :(Base.front($(left.args[1])), Base.front($(left.args[2])))
-    end
-    right = :(Base.reverse(sizes), Base.reverse(ax))
-    for i in 1:index
-        right = :(Base.front($(right.args[1])), Base.front($(right.args[2])))
-    end
-    right = :(Base.reverse($(right.args[1])), Base.reverse($(right.args[2])))
+    d = _move_and_re(:sizes, :(length(comps)), index,
+                     length(sizes.parameters), length(sizes.parameters))
+    a = _move_and_re(:ax, :(Axis{:spin}(comps)), index,
+                     length(sizes.parameters), length(sizes.parameters))
     quote
         comps = components(T, S)
-        (
-            ($(left.args[1])..., $(right.args[1])..., length(comps)),
-            ($(left.args[2])..., $(right.args[2])..., Axis{:spin}(comps))
-        )
+        ($d, $a)
     end
 end
 
@@ -142,4 +126,21 @@ for extension in [:zeros, :ones, :rand]
             $extension(T, polarized ? ColinearSpin(): SpinDegenerate(), args...)
     end
 end
+
+# """
+# Creates an array for the given DFT quantity using a template array
+#
+# The spin axis is automatically added if required. Neither `dims` nor `ax` should
+# include the spin dimension.
+# """
+# Base.zeros(T::Type{<:DD.Scalars.All}, C::SpinCategory,
+#                 dims::Tuple, ax::Tuple) = begin
+#     length(ax) > (length(dims) + 1) && throw(ArgumentError("Too many axes"))
+#     comps = components(T, C)
+#     data = $extension(T, add_spin_axis(C, dims, length(comps)))
+#     # we can use a dummy array here since the underlying array (and indices) will be the
+#     # standard one
+#     defaults = AxisArrays.default_axes(ConstantArray(0, dims), ax)
+#     AxisArray(data, add_spin_axis(C, defaults, Axis{:spin}(comps)))
+# end
 end
