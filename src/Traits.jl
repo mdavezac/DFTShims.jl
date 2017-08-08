@@ -1,6 +1,6 @@
 module Traits
-export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components
-export SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst, ColinearSpin,
+export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components,
+       SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst,
        ColinearSpinPreferLast, ColinearSpinLast
 
 using DocStringExtensions

@@ -5,20 +5,23 @@ using Unitful
 include("UnitfulHartree.jl")
 using .UnitfulHartree
 const UH = UnitfulHartree
+export UnitfulHartree, Unitful, @u_str
 
 include("Dispatch.jl")
 using .Dispatch
+using .Dispatch: DFTArray, DFTAxisArray
+export DFTArray, DFTAxisArray, Dispatch
 
 include("Traits.jl")
-using .Traits
+using .Traits: ColinearSpin, ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
+               SpinDegenerate, SpinCategory, FunctionalCategory, GGA, LDA, components,
+               is_spin_polarized, has_axis
+export ColinearSpin, ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
+       SpinDegenerate, SpinCategory, FunctionalCategory, GGA, LDA, components,
+       is_spin_polarized, has_axis
+
 
 include("ArrayInitialization.jl")
 using .ArrayInitialization
-
-export UnitfulHartree, Unitful, @u_str
-export DFTArray, DFTAxisArray, dft_similar, Dispatch
-export has_axis, is_spin_polarized, SpinCategory, SpinDegenerate, components
-export ColinearSpin, ColinearSpinFirst, ColinearSpinPreferLast, FunctionalCategory, LDA, GGAthe 
-export ColinearSpinLast
 
 end # module
