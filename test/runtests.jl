@@ -16,4 +16,7 @@ end
 @testset "Initialization" begin
     include("Initialization.jl")
 end
+@testset "Constant arrays" begin
+    include("ConstantArrays.jl")
+end
 nothing

@@ -20,6 +20,8 @@ export ColinearSpin, ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast
        SpinDegenerate, SpinCategory, FunctionalCategory, GGA, LDA, components,
        is_spin_polarized, has_axis
 
+include("ConstantArrays.jl")
+using .ConstantArrays
 
 include("ArrayInitialization.jl")
 using .ArrayInitialization

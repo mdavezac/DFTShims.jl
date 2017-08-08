@@ -59,19 +59,6 @@ end
 end
 
 @testset "ColinearSpin" begin
-    @testset "axis names" begin
-        comps = components(Dρ{Int64}, polarized)
-        extra_axis = Axis{:a}((1, 2))
-        spin_axis = Axis{:spin}((:α, :β)) 
-        defaults(a) = AxisArrays.default_axes(zeros((SIZES..., 2)), a)
-        pa(a) = @inferred DFTShims.ArrayInitialization.polarized_axis(comps, defaults(a), a)
-
-        @test pa((AXES..., extra_axis)) == defaults((AXES..., extra_axis))
-        @test pa(AXES) == (AXES..., spin_axis)
-        @test pa(AXES[1:1]) == (defaults(AXES[1:1])[1:end - 1]..., spin_axis)
-        @test pa(AXES[1:0]) == (defaults(AXES[1:0])[1:end - 1]..., spin_axis)
-    end
-
     ρ = zeros(Dρ{Int64}, true, SIZES...)
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == (SIZES..., 2)
@@ -84,12 +71,8 @@ end
     @test axes(ρ, 2) == AXES[2]
     @test axes(ρ, 3) == Axis{:spin}((:α, :β))
 
-    ρ = zeros(Dρ{Int64}, polarized, SIZES..., AXES..., Axis{:aa}((1, 2)))
-    @test typeof(ρ) <: AxisArray{Dρ{Int64}}
-    @test size(ρ) == (SIZES..., 2)
-    @test axes(ρ, 1) == AXES[1]
-    @test axes(ρ, 2) == AXES[2]
-    @test axes(ρ, 3) == Axis{:aa}((1, 2))
+    @test_throws(ArgumentError,
+                 zeros(Dρ{Int64}, polarized, SIZES..., AXES..., Axis{:aa}((1, 2))))
 
     const D∂³ϵ_∂ρ∂σ² = DH.Scalars.∂³ϵ_∂ρ∂σ²
     ∂³ϵ_∂ρ∂σ² = zeros(D∂³ϵ_∂ρ∂σ²{Int16}, polarized, SIZES..., AXES...)
