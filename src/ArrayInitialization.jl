@@ -31,12 +31,17 @@ replace_spin_axis(T::Type{<: DD.Scalars.All}, ::SpinDegenerate,
     sizes, ax
 end
 
+spin_axis_position(::Type{<: ColinearSpin}, n::Integer, s::Integer) = s == 0 ? n + 1: s
+spin_axis_position(::Type{ColinearSpinFirst}, ::Integer, ::Integer) = 1
+spin_axis_position(::Type{ColinearSpinLast}, n::Integer, ::Integer) = n + 1
+
 function _move_and_re(name::Symbol, expr::Expr, orig::Integer, final::Integer, n::Integer)
     result = Expr(:tuple)
     for i in 1:n
         i == final && push!(result.args, expr)
         i != orig && push!(result.args, :($name[$i]))
     end
+    final == n + 1 && push!(result.args, expr)
     result
 end
 
@@ -44,40 +49,11 @@ end
                              S::ColinearSpin, sizes::Tuple, ax::Tuple) = begin
     @lintpragma("Ignore use of undeclared variable comps")
     @assert length(sizes.parameters) == length(ax.parameters)
-    index = findfirst(is_spin_polarized, ax.parameters)
-    @assert index ≠ 0
-    d = _move_and_re(:sizes, :(length(comps)), index, index, length(sizes.parameters))
-    a = _move_and_re(:ax, :(Axis{:spin}(comps)), index, index, length(sizes.parameters))
-    quote
-        comps = components(T, S)
-        ($d, $a)
-    end
-end
-
-@generated replace_spin_axis(T::Type{<: DD.Scalars.All},
-                             S::ColinearSpinFirst, sizes::Tuple, ax::Tuple) = begin
-    @lintpragma("Ignore use of undeclared variable comps")
-    @assert(length(sizes.parameters) == length(ax.parameters))
-    index = findfirst(is_spin_polarized, ax.parameters)
-    @assert(index ≠ 0)
-    d = _move_and_re(:sizes, :(length(comps)), index, 1, length(sizes.parameters))
-    a = _move_and_re(:ax, :(Axis{:spin}(comps)), index, 1, length(sizes.parameters))
-    quote
-        comps = components(T, S)
-        ($d, $a)
-    end
-end
-
-@generated replace_spin_axis(T::Type{<: DD.Scalars.All},
-                             S::ColinearSpinLast, sizes::Tuple, ax::Tuple) = begin
-    @lintpragma("Ignore use of undeclared variable comps")
-    @assert(length(sizes.parameters) == length(ax.parameters))
-    index = findfirst(is_spin_polarized, ax.parameters)
-    @assert(index ≠ 0)
-    d = _move_and_re(:sizes, :(length(comps)), index,
-                     length(sizes.parameters), length(sizes.parameters))
-    a = _move_and_re(:ax, :(Axis{:spin}(comps)), index,
-                     length(sizes.parameters), length(sizes.parameters))
+    current = findfirst(is_spin_polarized, ax.parameters)
+    final = spin_axis_position(S, length(sizes.parameters), current)
+    @assert final ≠ 0
+    d = _move_and_re(:sizes, :(length(comps)), current, final, length(sizes.parameters))
+    a = _move_and_re(:ax, :(Axis{:spin}(comps)), current, final, length(sizes.parameters))
     quote
         comps = components(T, S)
         ($d, $a)
