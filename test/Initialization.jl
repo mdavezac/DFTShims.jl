@@ -84,3 +84,23 @@ end
     @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES)
     @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES[1:1])
 end
+
+@testset "From template array" begin
+    ρ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
+    @test all(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ) .== 0u"∂²ϵ_∂σ²")
+    @test eltype(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ)) == typeof(0u"∂²ϵ_∂σ²")
+    @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ))
+    @test length(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ)[Axis{:spin}]) == 6
+    @test find(x -> typeof(x) <: Axis{:spin}, 
+               axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ))) == [length(AXES) + 1]
+    @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ))[1:end - 1] == AXES
+    @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))[2:end] == AXES
+
+    @test !is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ))
+    @test ndims(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ)) == length(SIZES)
+    @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ)) == AXES
+
+    ρ = zeros(Dρ{Int64}, SpinDegenerate(), ρ)
+    @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))[2:end] == AXES
+    @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))
+end
