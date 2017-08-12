@@ -1,11 +1,13 @@
 module ArrayInitialization
 
+using DocStringExtensions
 using Unitful
 using AxisArrays
 using ..ConstantArrays: ConstantArray
 using ..UnitfulHartree
-using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, ColinearSpin
-using ..Traits: ColinearSpinFirst, ColinearSpinLast, is_spin_polarized
+using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, ColinearSpin,
+                ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
+                is_spin_polarized
 using ..Dispatch
 
 macro lintpragma(s) end
@@ -31,15 +33,31 @@ replace_spin_axis(T::Type{<: DD.Scalars.All}, ::SpinDegenerate,
     sizes, ax
 end
 
-spin_axis_position(::Type{<: ColinearSpin}, n::Integer, s::Integer) = s == 0 ? n + 1: s
+"""
+Position for the spin axis for a given spin category
+
+$(SIGNATURES)
+
+`n` is the number of dimensions in the array, and `s` is the location of the current spin
+axis, or 0 if there are non.
+"""
+spin_axis_position(::Type{ColinearSpinPreferLast}, n::Integer, s::Integer) =
+    !(1 ≤ s ≤ n) ? n + 1: s
 spin_axis_position(::Type{ColinearSpinFirst}, ::Integer, ::Integer) = 1
-spin_axis_position(::Type{ColinearSpinLast}, n::Integer, ::Integer) = n + 1
+spin_axis_position(::Type{ColinearSpinLast}, n::Integer, s::Integer) =
+    !(1 ≤ s ≤ n) ? n + 1: n
+spin_axis_position(S::SpinCategory, n::Integer, s::Integer) =
+    spin_axis_position(typeof(S), n, s)
+spin_axis_position(array::DD.AxisArrays.All) = findfirst(is_spin_polarized, axes(array))
+spin_axis_position(T::Type{DD.AxisArrays.All}) =
+    findfirst(is_spin_polarized, T.parameters[end].parameters)
 
 function _move_and_re(name::Symbol, expr::Expr, orig::Integer, final::Integer, n::Integer)
     result = Expr(:tuple)
     for i in 1:n
+        i > orig && push!(result.args, :($name[$i]))
         i == final && push!(result.args, expr)
-        i != orig && push!(result.args, :($name[$i]))
+        i < orig && push!(result.args, :($name[$i]))
     end
     final == n + 1 && push!(result.args, expr)
     result
@@ -147,4 +165,23 @@ for extension in [:zeros, :ones, :similar]
             $private(T, wanted, SpinCategory(array), array)
     end
 end
+
+"""
+Moves spin axis to preferred position
+
+$(SIGNATURES)
+
+If the spin-axis does not move, then a reference to the original array is returned.
+Otherwise, a new array is returned.
+"""
+Base.permutedims(array::DD.AxisArrays.All, C::ColinearSpin) = begin
+    original = spin_axis_position(array)
+    final = spin_axis_position(C, ndims(array), original)
+    final == original && return array
+
+    iₛ = insert!(deleteat!(collect(1:ndims(array)), original), final, original)
+    permutedims(array, iₛ)
+end
+Base.permutedims(array::DD.AxisArrays.All, ::ColinearSpinPreferLast) = array
+
 end

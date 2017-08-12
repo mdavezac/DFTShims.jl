@@ -104,3 +104,16 @@ end
     @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))[2:end] == AXES
     @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))
 end
+
+@testset "Permute spin axis" begin
+    ρₙ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
+    ρₙ[:] = (1:length(ρₙ)) * oneunit(eltype(ρₙ))
+    @test permutedims(ρₙ, ColinearSpinLast()) === ρₙ
+    @test permutedims(ρₙ, ColinearSpinPreferLast()) === ρₙ
+    ρ₀  = permutedims(ρₙ, ColinearSpinFirst())
+    @test axes(ρ₀) == (axes(ρₙ, Axis{:spin}), AXES...)
+
+    ρ = permutedims(ρ₀, ColinearSpinLast())
+    @test axes(ρ) == (AXES..., axes(ρₙ, Axis{:spin}))
+    @test permutedims(ρ₀, ColinearSpinPreferLast()) === ρ₀
+end
