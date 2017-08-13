@@ -105,15 +105,15 @@ end
     @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))
 end
 
-@testset "Permute spin axis" begin
+@testset "Convert between arrays" begin
     ρₙ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
     ρₙ[:] = (1:length(ρₙ)) * oneunit(eltype(ρₙ))
-    @test permutedims(ρₙ, ColinearSpinLast()) === ρₙ
-    @test permutedims(ρₙ, ColinearSpinPreferLast()) === ρₙ
-    ρ₀  = permutedims(ρₙ, ColinearSpinFirst())
+    @test convert(ColinearSpinLast, ρₙ) === ρₙ
+    @test convert(ColinearSpinPreferLast, ρₙ) === ρₙ
+    ρ₀  = convert(ColinearSpinFirst, ρₙ)
     @test axes(ρ₀) == (axes(ρₙ, Axis{:spin}), AXES...)
 
-    ρ = permutedims(ρ₀, ColinearSpinLast())
+    ρ = convert(ColinearSpinLast, ρ₀)
     @test axes(ρ) == (AXES..., axes(ρₙ, Axis{:spin}))
-    @test permutedims(ρ₀, ColinearSpinPreferLast()) === ρ₀
+    @test convert(ColinearSpinPreferLast, ρ₀) === ρ₀
 end

@@ -167,14 +167,14 @@ for extension in [:zeros, :ones, :similar]
 end
 
 """
-Moves spin axis to preferred position
+Converts axis to the requisite spin-axis location
 
 $(SIGNATURES)
 
 If the spin-axis does not move, then a reference to the original array is returned.
 Otherwise, a new array is returned.
 """
-Base.permutedims(array::DD.AxisArrays.All, C::ColinearSpin) = begin
+Base.convert(C::Type{<: ColinearSpin}, array::DD.AxisArrays.All) = begin
     original = spin_axis_position(array)
     final = spin_axis_position(C, ndims(array), original)
     final == original && return array
@@ -182,6 +182,7 @@ Base.permutedims(array::DD.AxisArrays.All, C::ColinearSpin) = begin
     iₛ = insert!(deleteat!(collect(1:ndims(array)), original), final, original)
     permutedims(array, iₛ)
 end
-Base.permutedims(array::DD.AxisArrays.All, ::ColinearSpinPreferLast) = array
+Base.convert(::Type{ColinearSpinPreferLast}, array::DD.AxisArrays.All) = array
+Base.convert(S::SpinCategory, array::DD.AxisArrays.All) = convert(typeof(S), array)
 
 end
