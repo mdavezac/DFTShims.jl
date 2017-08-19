@@ -92,6 +92,7 @@ struct SpinDegenerate <: SpinCategory end
         :(ColinearSpinPreferLast())
     end
 end
+(::Type{SpinCategory})(S::SpinCategory) = S
 """ ColinearSpin defaults to settings spin axis in last position
 
 However, if the spin axis is already given, functions following this traits should not move
