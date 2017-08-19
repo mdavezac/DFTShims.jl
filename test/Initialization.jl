@@ -25,6 +25,11 @@ const unpolarized = SpinDegenerate()
     @test axes(ρ, 1) == AXES[1]
     @test axes(ρ, 2) == AXES[2]
 
+    ρ = @inferred reinterpret(Dρ{Int64}, SpinDegenerate(), [1 1 1; 2 2 2])
+    @test typeof(ρ) <: AxisArray
+    @test eltype(ρ) == Dρ{Int64}
+    @test !is_spin_polarized(ρ)
+
     @test_throws ArgumentError zeros(Dρ{Int64}, unpolarized, SIZES..., AXES..., AXES[1])
 
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES)
@@ -79,6 +84,14 @@ end
     @test size(∂³ϵ_∂ρ∂σ²) == (SIZES..., 12)
     @test axes(∂³ϵ_∂ρ∂σ², 1) == AXES[1]
     @test axes(∂³ϵ_∂ρ∂σ², 2) == AXES[2]
+
+    ρ = @inferred reinterpret(Dρ{Int64}, ColinearSpinFirst(), [1 1 1; 2 2 2])
+    @test typeof(ρ) <: AxisArray
+    @test eltype(ρ) == Dρ{Int64}
+    @test is_spin_polarized(ρ)
+
+    # @test_throws(ArgumentError,
+                 # reinterpret(Dρ{Int64}, ColinearSpinPreferLast(), [1 1 1; 2 2 2]))
 
     @inferred zeros(Dρ{Int64}, polarized, SIZES)
     @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES)

@@ -9,6 +9,7 @@ using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, Colinear
                 ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
                 is_spin_polarized
 using ..Dispatch
+export add_spin_axis
 
 macro lintpragma(s) end
 @lintpragma("Ignore unused args")
@@ -39,7 +40,7 @@ Position for the spin axis for a given spin category
 $(SIGNATURES)
 
 `n` is the number of dimensions in the array, and `s` is the location of the current spin
-axis, or 0 if there are non.
+axis, or 0 if there are none.
 """
 spin_axis_position(::Type{ColinearSpinPreferLast}, n::Integer, s::Integer) =
     !(1 ≤ s ≤ n) ? n + 1: s
@@ -165,6 +166,15 @@ for extension in [:zeros, :ones, :similar]
             $private(T, wanted, SpinCategory(array), array)
     end
 end
+
+Base.reinterpret(T::Type{<: DD.Scalars.All}, ::SpinDegenerate, array::DenseArray) =
+    AxisArray(reinterpret(T, array), axes(array))
+Base.reinterpret(T::Type{<: DD.Scalars.All}, ::ColinearSpinFirst, array::DenseArray) = 
+    AxisArray(reinterpret(T, array),
+              Axis{:spin}(components(T, ColinearSpinFirst())), Base.tail(axes(array))...)
+Base.reinterpret(T::Type{<: DD.Scalars.All}, C::ColinearSpin, array::DenseArray) =
+    AxisArray(reinterpret(T, array),
+              Base.front(axes(array))..., Axis{:spin}(components(T, C)))
 
 """
 Converts axis to the requisite spin-axis location
