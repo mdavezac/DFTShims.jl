@@ -4,6 +4,7 @@ using Unitful
 
 const DH = DFTShims.Dispatch.Hartree
 const Dρ = DH.Scalars.ρ
+const Dϵ = DH.Scalars.ϵ
 const SIZES = 10, 2
 const AXES = Axis{:radius}(1:SIZES[1]), Axis{:bb}((:α, :β))
 const polarized = ColinearSpin()
@@ -35,6 +36,11 @@ const unpolarized = SpinDegenerate()
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES)
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES)
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES[1:1])
+
+    ϵ = @inferred zeros(Dϵ{Int64}, ColinearSpin(), SIZES)
+    @test !is_spin_polarized(ϵ)
+    @test :spins ∉ axisvalues(ϵ)
+    @test size(ϵ) == SIZES
 end
 
 @testset "Axis Manipulations" begin
@@ -101,6 +107,7 @@ end
 @testset "From template array" begin
     ρ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
     @test all(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ) .== 0u"∂²ϵ_∂σ²")
+    @test !(typeof(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ).data) <: AxisArray)
     @test eltype(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ)) == typeof(0u"∂²ϵ_∂σ²")
     @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ))
     @test length(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ρ)[Axis{:spin}]) == 6
@@ -110,23 +117,45 @@ end
     @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))[2:end] == AXES
 
     @test !is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ))
+    @test !(typeof(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate()).data) <: AxisArray)
     @test ndims(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ)) == length(SIZES)
     @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ)) == AXES
+
+    ϵ = @inferred zeros(Dϵ{Int64}, ColinearSpin(), ρ)
+    @test !is_spin_polarized(ϵ)
+    @test :spins ∉ axisvalues(ϵ)
+    @test size(ϵ) == SIZES
+    @test !(typeof(ϵ.data) <: AxisArray)
 
     ρ = zeros(Dρ{Int64}, SpinDegenerate(), ρ)
     @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))[2:end] == AXES
     @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))
+
+    ϵ = @inferred zeros(Dϵ{Int64}, ColinearSpin(), ρ)
+    @test !is_spin_polarized(ϵ)
+    @test :spins ∉ axisvalues(ϵ)
+    @test size(ϵ) == SIZES
 end
 
 @testset "Convert between arrays" begin
     ρₙ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
     ρₙ[:] = (1:length(ρₙ)) * oneunit(eltype(ρₙ))
     @test convert(ColinearSpinLast, ρₙ) === ρₙ
+    @test !(typeof(convert(ColinearSpinLast, ρₙ).data) <: AxisArray)
     @test convert(ColinearSpinPreferLast, ρₙ) === ρₙ
     ρ₀  = convert(ColinearSpinFirst, ρₙ)
     @test axes(ρ₀) == (axes(ρₙ, Axis{:spin}), AXES...)
+    @test !(typeof(ρ₀.data) <: AxisArray)
 
     ρ = convert(ColinearSpinLast, ρ₀)
     @test axes(ρ) == (AXES..., axes(ρₙ, Axis{:spin}))
     @test convert(ColinearSpinPreferLast, ρ₀) === ρ₀
+
+    ρₘ = uconvert(u"m^-3", ρ₀)
+    @test axes(ρₘ) == axes(ρ₀)
+    @test all(ρₘ .== uconvert.(u"m^-3", ρ₀))
+
+    ϵ = similar(DH.Scalars.ϵ{Int64}, ρ₀)
+    @test !is_spin_polarized(ϵ)
+    @test !(typeof(ϵ.data) <: AxisArray)
 end

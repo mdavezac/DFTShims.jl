@@ -66,6 +66,7 @@ const ϵ₀ = 1/(4π*kₑ)
 @unit ∂³ϵ_∂σ³   "∂³ϵ_∂σ³"   ThirdGradientDerivative         (1Eₕ)*(1a₀)^24 false
 @unit ∂³ϵ_∂ρ²∂σ "∂³ϵ_∂ρ²∂σ" ThirdDensity2GradientDerivative (1Eₕ)*(1a₀)^14 false
 @unit ∂³ϵ_∂ρ∂σ² "∂³ϵ_∂ρ∂σ²" ThirdDensityGradient2Derivative (1Eₕ)*(1a₀)^19 false
+const ϵ = Eₕ
 
 
 # Some gymnastics required here because if we precompile, we cannot add to

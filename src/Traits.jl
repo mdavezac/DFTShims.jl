@@ -176,6 +176,7 @@ components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::SpinDegenerate) = (:∂σ�
 components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::SpinDegenerate) = (:∂ρ²∂σ,)
 components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::SpinDegenerate) = (:∂ρ∂σ²,)
 components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::SpinDegenerate) = (:∂σ³,)
+components(::typeof(dimension(UH.ϵ)), ::SpinCategory) = (:ϵ,)
 
 components(u::Unitful.FreeUnits, P::SpinCategory) = components(dimension(u), P)
 components(u::DD.Scalars.All, P::SpinCategory) = components(dimension(u), P)
