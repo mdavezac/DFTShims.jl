@@ -17,8 +17,6 @@ macro lintpragma(s) end
 
 const DD = Dispatch.Dimensions
 
-_size(::Type{<: DD.Scalars.ϵ}, ::SpinCategory, ::SpinCategory, object::DD.AxisArrays.ϵ) =
-    size(object)
 _size(T::Type{<: DD.Scalars.All}, ::SpinDegenerate,
       ::SpinDegenerate, object::DD.AxisArrays.All) = size(object)
 _size(T::Type{<: DD.Scalars.All}, ::ColinearSpin,
@@ -114,26 +112,31 @@ for extension in [:zeros, :ones, :rand]
             defaults = AxisArrays.default_axes(ConstantArray(0, dims))
             AxisArray(data, add_spin_axis(C, defaults, Axis{:spin}(comps)))
         end
-        Base.$extension(T::Type{<:DD.Scalars.ϵ}, ::ColinearSpin, dims::Tuple, ax::Tuple) =
-            $extension(T, SpinDegenerate(), dims, ax)
-        Base.$extension(T::Type{<:DD.Scalars.ϵ}, ::ColinearSpin, dims::Tuple) =
-            $extension(T, SpinDegenerate(), dims)
 
         """
         Creates an array for the given DFT quantity
 
-        The spin components, if any, are added as the last dimension.
-        Note should `dims` does not include the spin components.
+        The spin components, if any, are added as the dimension specified by the spin trait.
+        Note that the spin trait is the only way polarization should enter the input
+        arguments, e.g. the spin-axis should not be given explicitly, neither in the axes
+        nor in the dimensions.
         """
         Base.$extension(T::Type{<:DD.Scalars.All}, P::SpinCategory,
-                        args::Vararg{Union{Integer, Axis}}) = begin
+                        args::Vararg{Union{Integer, Axis}}; kwargs...) = begin
             @lintpragma("Ignore use of undeclared variable x")
-            $extension(T, P, ((x for x in args if typeof(x) <: Integer)...),
-                       ((x for x in args if typeof(x) <: Axis)...))
+            dims = (
+                (x for x in args if typeof(x) <: Integer)...,
+                (length(v) for (_, v) in kwargs)...,
+            )
+            ax = (
+                (x for x in args if typeof(x) <: Axis)...,
+                (Axis{k}(v) for (k, v) in kwargs)...,
+            )
+            $extension(T, P, dims, ax)
         end
         Base.$extension(T::Type{<:DD.Scalars.All}, polarized::Bool,
-                        args::Vararg{Union{Integer, Axis}}) =
-            $extension(T, polarized ? ColinearSpin(): SpinDegenerate(), args...)
+                        args::Vararg{Union{Integer, Axis}}; kwargs...) =
+            $extension(T, polarized ? ColinearSpin(): SpinDegenerate(), args...; kwargs...)
     end
 end
 
@@ -166,14 +169,10 @@ for extension in [:zeros, :ones, :similar]
 
         Base.$extension(T::Type{<:DD.Scalars.All}, array::DD.AxisArrays.All) =
             $private(T, SpinCategory(array), SpinCategory(array), array)
-        Base.$extension(T::Type{<:DD.Scalars.ϵ}, array::DD.AxisArrays.All) =
-            $private(T, SpinDegenerate(), SpinCategory(array), array)
 
         Base.$extension(T::Type{<:DD.Scalars.All},
                         wanted::SpinCategory, array::DD.AxisArrays.All) =
             $private(T, wanted, SpinCategory(array), array)
-        Base.$extension(T::Type{<:DD.Scalars.ϵ}, ::SpinCategory, array::DD.AxisArrays.All) =
-            $private(T, SpinDegenerate(), SpinCategory(array), array)
     end
 end
 
@@ -185,10 +184,6 @@ Base.reinterpret(T::Type{<: DD.Scalars.All}, ::ColinearSpinFirst, array::DenseAr
 Base.reinterpret(T::Type{<: DD.Scalars.All}, C::ColinearSpin, array::DenseArray) =
     AxisArray(reinterpret(T, array),
               Base.front(axes(array))..., Axis{:spin}(components(T, C)))
-Base.reinterpret(T::Type{<: DD.Scalars.ϵ}, ::ColinearSpin, array::DenseArray) =
-    reinterpret(T, SpinDegenerate(), array)
-Base.reinterpret(T::Type{<: DD.Scalars.ϵ}, ::ColinearSpinFirst, array::DenseArray) =
-    reinterpret(T, SpinDegenerate(), array)
 
 """
 Converts axis to the requisite spin-axis location
@@ -207,7 +202,6 @@ Base.convert(C::Type{<: ColinearSpin}, array::DD.AxisArrays.All) = begin
     permutedims(array, iₛ)
 end
 Base.convert(::Type{ColinearSpinPreferLast}, array::DD.AxisArrays.All) = array
-Base.convert(::Type{<: ColinearSpin}, array::DD.AxisArrays.ϵ) = array
 Base.convert(S::SpinCategory, array::DD.AxisArrays.All) = convert(typeof(S), array)
 
 Unitful.uconvert(u::Unitful.Units, array::AxisArray) = begin

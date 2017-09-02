@@ -31,7 +31,8 @@ end
 
 @testset "components" begin
     @test @inferred(components(UnitfulHartree.ρ, unpolarized)) == (:ρ,)
-    @test all(components(UnitfulHartree.ρ, polarized) .== (:α, :β))
+    @test components(UnitfulHartree.ρ, polarized) == (:α, :β)
+    @test components(UnitfulHartree.ϵ, polarized) == (:α, :β)
     @test length(components(Dispatch.Dimensions.Scalars.∂ϵ_∂σ, unpolarized)) == 1
     @test length(@inferred(components(UnitfulHartree.∂ϵ_∂σ, polarized))) == 3
     @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂ρ², polarized))) == 3

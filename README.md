@@ -140,8 +140,8 @@ location and would want to avoid copying data where possible. However, it still 
 a preferred axis location in cases where it is not known from the input. In practice, this
 trait is useful only when creating a new array from another.
 
-Note that the energy (`ϵ`) is never spin-polarized. The function `SpinCategory` can be used
-on an array to guess the relevant trait, whether `SpinDegenerate`
+The function `SpinCategory` can be used on an array to guess the relevant trait, whether
+`SpinDegenerate` or some flavor of `ColinearSpin`. 
 
 ## Array creation
 

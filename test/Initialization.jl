@@ -1,4 +1,4 @@
-using DFTShims
+using DFTShims: ColinearSpin, SpinDegenerate, is_spin_polarized
 using AxisArrays
 using Unitful
 
@@ -38,9 +38,9 @@ const unpolarized = SpinDegenerate()
     @inferred zeros(Dρ{Int64}, unpolarized, SIZES, AXES[1:1])
 
     ϵ = @inferred zeros(Dϵ{Int64}, ColinearSpin(), SIZES)
-    @test !is_spin_polarized(ϵ)
-    @test :spins ∉ axisvalues(ϵ)
-    @test size(ϵ) == SIZES
+    @test is_spin_polarized(ϵ)
+    @test :spin ∈ axisnames(ϵ)
+    @test size(ϵ) == (SIZES..., 2)
 end
 
 @testset "Axis Manipulations" begin
@@ -121,9 +121,9 @@ end
     @test ndims(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ)) == length(SIZES)
     @test axes(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate(), ρ)) == AXES
 
-    ϵ = @inferred zeros(Dϵ{Int64}, ColinearSpin(), ρ)
+    ϵ = @inferred zeros(Dϵ{Int64}, SpinDegenerate(), ρ)
     @test !is_spin_polarized(ϵ)
-    @test :spins ∉ axisvalues(ϵ)
+    @test :spin ∉ axisnames(ϵ)
     @test size(ϵ) == SIZES
     @test !(typeof(ϵ.data) <: AxisArray)
 
@@ -132,9 +132,9 @@ end
     @test is_spin_polarized(zeros(DH.Scalars.∂²ϵ_∂σ²{Int64}, ColinearSpinFirst(), ρ))
 
     ϵ = @inferred zeros(Dϵ{Int64}, ColinearSpin(), ρ)
-    @test !is_spin_polarized(ϵ)
-    @test :spins ∉ axisvalues(ϵ)
-    @test size(ϵ) == SIZES
+    @test is_spin_polarized(ϵ)
+    @test :spin ∈ axisnames(ϵ)
+    @test size(ϵ) == (SIZES..., 2)
 end
 
 @testset "Convert between arrays" begin
@@ -156,6 +156,19 @@ end
     @test all(ρₘ .== uconvert.(u"m^-3", ρ₀))
 
     ϵ = similar(DH.Scalars.ϵ{Int64}, ρ₀)
-    @test !is_spin_polarized(ϵ)
+    @test is_spin_polarized(ϵ)
     @test !(typeof(ϵ.data) <: AxisArray)
+end
+
+@testset "Creation via keyword arguments" begin
+    axis = 0u"a₀":0.1u"a₀":4u"a₀"
+    ρ = zeros(DH.Scalars.ρ{Float64}, false, radius=axis)
+    @test eltype(ρ) == DH.Scalars.ρ{Float64}
+    @test size(ρ) == (length(axis), )
+    @test axes(ρ, 1) == Axis{:radius}(axis)
+
+    ρ = rand(DH.Scalars.ρ{Float64}, false, radius=axis)
+    @test eltype(ρ) == DH.Scalars.ρ{Float64}
+    @test size(ρ) == (length(axis), )
+    @test axes(ρ, 1) == Axis{:radius}(axis)
 end

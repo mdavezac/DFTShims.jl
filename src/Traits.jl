@@ -143,10 +143,12 @@ the contracted gradient density (∇ρ⋅∇ρ), and σαα (∇α⋅∇α), σ�
 contracted gradient densities.
 """
 components(::typeof(dimension(UH.ρ)), ::SpinDegenerate) = (:ρ,)
+components(::typeof(dimension(UH.ϵ)), ::SpinDegenerate) = (:ϵ,)
 components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::SpinDegenerate) = (:∂ρ,)
 components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::SpinDegenerate) = (:∂ρ²,)
 components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::SpinDegenerate) = (:∂ρ³,)
 components(::typeof(dimension(UH.ρ)), ::ColinearSpin) = :α, :β
+components(::typeof(dimension(UH.ϵ)), ::ColinearSpin) = :α, :β
 components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::ColinearSpin) = :∂α, :∂β
 components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::ColinearSpin) = :∂α², :∂α∂β, :∂²β 
 components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::ColinearSpin) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
@@ -176,7 +178,6 @@ components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::SpinDegenerate) = (:∂σ�
 components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::SpinDegenerate) = (:∂ρ²∂σ,)
 components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::SpinDegenerate) = (:∂ρ∂σ²,)
 components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::SpinDegenerate) = (:∂σ³,)
-components(::typeof(dimension(UH.ϵ)), ::SpinCategory) = (:ϵ,)
 
 components(u::Unitful.FreeUnits, P::SpinCategory) = components(dimension(u), P)
 components(u::DD.Scalars.All, P::SpinCategory) = components(dimension(u), P)
