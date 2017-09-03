@@ -9,39 +9,22 @@ of interest.
 # Hartree units
 
 The sub-package `DFTShims.UnitfulHartree` provides the following standard units for Hartree
-atomic units:
+atomic units, as well as some DFT specific quantities.
 
-+--------------+-------------------------+
-| abbreviation | Typename                |
-+--------------+-------------------------+
-| mₑ           | ElectronMass            |
-| e₀           | ElementaryCharge        |
-| kₑ           | CoulombForceConstant    |
-| ħ            | ReducedPlanckConstant   |
-| a₀           | BohrRadius              |
-| Eₕ           | HartreeEnergy           |
-| Ry           | RydbergEnergy           |
-| rₑ           | ClassicalElectronRadius |
-+--------------+-------------------------+
-
-Additionally, the following units exist more specifically for DFT
-
-+--------------+---------------------------------+
-| abbreviation | Typename                        |
-+--------------+---------------------------------+
-| ρ            | Density                         |
-| σ            | ContractedDensityGradient       |
-| ∂ϵ_∂ρ        | FirstDensityDerivative          |
-| ∂ϵ_∂σ        | FirstGradientDerivative         |
-| ∂²ϵ_∂ρ²      | SecondDensityDerivative         |
-| ∂²ϵ_∂σ²      | SecondGradientDerivative        |
-| ∂²ϵ_∂ρ∂σ     | SecondDensityGradientDerivative |
-| ∂³ϵ_∂ρ³      | ThirdDensityDerivative          |
-| ∂³ϵ_∂σ³      | ThirdGradientDerivative         |
-| ∂³ϵ_∂ρ²∂σ    | ThirdDensity2GradientDerivative |
-| ∂³ϵ_∂ρ∂σ²    | ThirdDensityGradient2Derivative |
-| ϵ(=== Eₕ)    | HartreeEnergy                   |
-+--------------+---------------------------------+
+| abbreviation | Typename                | abbreviation | Typename                        |
+|--------------|-------------------------|--------------|---------------------------------|
+| mₑ           | ElectronMass            | ρ            | Density                         |
+| e₀           | ElementaryCharge        | σ            | ContractedDensityGradient       |
+| kₑ           | CoulombForceConstant    | ∂ϵ_∂ρ        | FirstDensityDerivative          |
+| ħ            | ReducedPlanckConstant   | ∂ϵ_∂σ        | FirstGradientDerivative         |
+| a₀           | BohrRadius              | ∂²ϵ_∂ρ²      | SecondDensityDerivative         |
+| Eₕ           | HartreeEnergy           | ∂²ϵ_∂σ²      | SecondGradientDerivative        |
+| Ry           | RydbergEnergy           | ∂²ϵ_∂ρ∂σ     | SecondDensityGradientDerivative |
+| rₑ           | ClassicalElectronRadius | ∂³ϵ_∂ρ³      | ThirdDensityDerivative          |
+|              |                         | ∂³ϵ_∂σ³      | ThirdGradientDerivative         |
+|              |                         | ∂³ϵ_∂ρ²∂σ    | ThirdDensity2GradientDerivative |
+|              |                         | ∂³ϵ_∂ρ∂σ²    | ThirdDensityGradient2Derivative |
+|              |                         | ϵ(=== Eₕ)    | HartreeEnergy                   |
 
 The following constants are also declared:
 
