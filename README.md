@@ -136,19 +136,28 @@ easily create spin-polarized and spin-degenerate arrays with the correct units. 
 of the spin-axis depends on the input trait:
 
 ```Julia
-a = zeros(Dispatch.Scalars.ρ{Int64}, SpinDegenerate(), (8, 9))
+a = zeros(Dispatch.Hartree.Scalars.ρ{Int64}, SpinDegenerate(), (8, 9))
 @test size(a) == (8, 9) && unit(a) === UnitfulHartree.ρ
 
-b = similar(Dispatch.Scalars.∂³ϵ_∂ρ³{Int64}, ColinearSpinLast(), (8, 9))
+b = similar(Dispatch.Hartree.Scalars.∂³ϵ_∂ρ³{Int64}, ColinearSpinLast(), (8, 9))
 @test size(b) == (8, 9, 4)
 
-c = ones(Dispatch.Scalars.∂³ϵ_∂ρ³{Int64}, ColinearSpinFirst(), b)
+c = ones(Dispatch.Hartree.Scalars.∂³ϵ_∂ρ³{Int64}, ColinearSpinFirst(), b)
 @test size(c) == (4, 8, 9)
+
+d = ones(Dispatch.Dimensions.Scalars.ρ, c)
+@test size(d) == (4, 8, 9)
 ```
 
-Note that when specifying the dimensions of the array, the spin axis should be omitted, it
-is fully specified by the spin-trait and the physical units. This ensures that the name of
-the components of the spin-axis are correct (try `axes(c, 1)`).
+Note in the last example, the first argument is an abstract type which specifies only the
+physical dimension (but not the underlying type, nor the units). The underlying type will
+guessed from the type of the second argument. And the units, will be either taken from `c`
+or default to Hartrees (Here, `dimension(1u"ρ") ≠ dimension(c)`, hence the units are
+defaulted to Hartree).
+
+When specifying the dimensions of the array, the spin axis should be omitted, it is fully
+specified by the spin-trait and the physical units. This ensures that the name of the
+components of the spin-axis are correct (try `axes(c, 1)`).
 
 It is also possible to convert between different spin-axis locations with:
 

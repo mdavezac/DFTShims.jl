@@ -2,6 +2,13 @@ using DFTShims
 using AxisArrays
 using Unitful
 
+macro lintpragma(s) end
+@lintpragma("Ignore use of undeclared D")
+@lintpragma("Ignore use of undeclared U")
+
+const DD = Dispatch.Dimensions
+const DH = Dispatch.Hartree
+
 spin = AxisArray(zeros((10, 2)), Axis{:radius}(0u"m":1u"m":9u"m"), Axis{:spin}((:+, :-)))
 nospin = AxisArray(zeros((10, 2)), Axis{:radius}(0u"m":1u"m":9u"m"), Axis{:n}((1, 2)))
 const polarized = ColinearSpin()
@@ -33,7 +40,7 @@ end
     @test @inferred(components(UnitfulHartree.ρ, unpolarized)) == (:ρ,)
     @test components(UnitfulHartree.ρ, polarized) == (:α, :β)
     @test components(UnitfulHartree.ϵ, polarized) == (:α, :β)
-    @test length(components(Dispatch.Dimensions.Scalars.∂ϵ_∂σ, unpolarized)) == 1
+    @test length(components(DD.Scalars.∂ϵ_∂σ, unpolarized)) == 1
     @test length(@inferred(components(UnitfulHartree.∂ϵ_∂σ, polarized))) == 3
     @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂ρ², polarized))) == 3
     @test length(@inferred(components(UnitfulHartree.∂²ϵ_∂ρ∂σ, unpolarized))) == 1
@@ -50,9 +57,22 @@ end
     @test FunctionalCategory(UnitfulHartree.∂ϵ_∂σ) === GGA
     @test FunctionalCategory(UnitfulHartree.∂²ϵ_∂ρ²) === LDA
     @test FunctionalCategory(UnitfulHartree.∂²ϵ_∂ρ∂σ) === GGA
-    @test FunctionalCategory(Dispatch.Dimensions.Scalars.∂²ϵ_∂σ²) === GGA
+    @test FunctionalCategory(DD.Scalars.∂²ϵ_∂σ²) === GGA
     @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ³) === LDA
     @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ²∂σ) === GGA
     @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ∂σ²) === GGA
     @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂σ³) === GGA
+end
+
+@testset "Type concretization" begin
+    @test concretize_type(DD.Scalars.ρ, Int16) === DH.Scalars.ρ{Int16}
+    @test concretize_type(DH.Scalars.ρ, Int16) === DH.Scalars.ρ{Int16}
+    @test concretize_type(typeof(1.0u"m"), Int16) === typeof(1.0u"m")
+    @test concretize_type(DH.Scalars.ρ, Quantity{Int16, D, U} where {D, U}) ===
+            DH.Scalars.ρ{Int16}
+    @test concretize_type(DD.Scalars.ρ, Quantity{Int16, D, U} where {D, U}) ===
+            DH.Scalars.ρ{Int16}
+    @test concretize_type(DD.Scalars.ρ,
+                          Quantity{Int16, typeof(dimension(1u"C")), U} where U) ===
+            DH.Scalars.ρ{Int16}
 end

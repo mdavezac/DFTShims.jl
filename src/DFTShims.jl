@@ -15,15 +15,16 @@ export DFTArray, DFTAxisArray, Dispatch
 include("Traits.jl")
 using .Traits: ColinearSpin, ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
                SpinDegenerate, SpinCategory, FunctionalCategory, GGA, LDA, components,
-               is_spin_polarized, has_axis
+               is_spin_polarized, has_axis, concretize_type
 export ColinearSpin, ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
        SpinDegenerate, SpinCategory, FunctionalCategory, GGA, LDA, components,
-       is_spin_polarized, has_axis
+       is_spin_polarized, has_axis, concretize_type
 
 include("ConstantArrays.jl")
 using .ConstantArrays
 
 include("ArrayInitialization.jl")
-using .ArrayInitialization
+using .ArrayInitialization: wrap
+export wrap
 
 end # module

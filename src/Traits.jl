@@ -1,7 +1,7 @@
 module Traits
 export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components,
        SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst,
-       ColinearSpinPreferLast, ColinearSpinLast
+       ColinearSpinPreferLast, ColinearSpinLast, concretize_type
 
 using DocStringExtensions
 using AxisArrays
@@ -9,12 +9,15 @@ using Unitful
 using ..UnitfulHartree
 using ..Dispatch
 const DD = Dispatch.Dimensions
+const DH = Dispatch.Hartree
 
 macro lintpragma(s) end
-@lintpragma("Ignore use of undeclared variable D")
 @lintpragma("Ignore use of undeclared variable unitful_dimensions")
 @lintpragma("Ignore use of undeclared variable Q")
 @lintpragma("Ignore use of undeclared variable T")
+@lintpragma("Ignore use of undeclared variable D")
+@lintpragma("Ignore use of undeclared variable U")
+@lintpragma("Ignore use of undeclared variable H")
 @lintpragma("Ignore unused array")
 
 const UH = UnitfulHartree
@@ -183,4 +186,47 @@ components(u::Unitful.FreeUnits, P::SpinCategory) = components(dimension(u), P)
 components(u::DD.Scalars.All, P::SpinCategory) = components(dimension(u), P)
 components(T::Type{<: DD.Scalars.All}, P::SpinCategory) =
     components(unitful_dimensions(T), P)
+
+""" helper function to concretize some types using Hartree units """
+function hartree_concretize_type end
+for (_, name) in Dispatch.Dimensioned
+    @eval begin
+        @inline hartree_concretize_type(::Type{DD.Scalars.$name},
+                                        ::Type{<: Quantity{T}}) where T =
+            DH.Scalars.$name{T}
+        @inline hartree_concretize_type(::Type{DD.Scalars.$name}, T::Type{<: Number}) =
+            DH.Scalars.$name{T}
+        @inline hartree_concretize_type(::Type{DD.Scalars.$name{TT, U} where TT},
+                                        ::Type{T}) where U where T <: Number =
+            DD.Scalars.$name{T, U}
+        @inline hartree_concretize_type(::Type{DD.Scalars.$name{TT, U} where TT},
+                                        ::Type{<: Quantity{T}}) where {U, T} =
+            DD.Scalars.$name{T, U}
+    end
+end
+
+"""
+Tries and figures a concrete type given `Q <: Quantity` and `T <: Number`
+
+`Q` may be abstract: the underlying type or the units may be unknown (but the dimensions are
+always specified). Whatever is missing is taken from `T`. If the units are unspecified, and
+`Q <: Dispatch.Dimensions.Scalars.All`, then Hartree units are used by default.
+
+# Examples
+
+concretize_type(Dispatch.Dimensions.Scalars.ρ, Int16) === Dispatch.Hartree.Scalars.ρ{Int16}
+concretize_type(typeof(1.0u"m^-3"), Int16) === typeof(Int16(1)u"m^-3")
+"""
+@inline concretize_type(::Type{Quantity{T, D, U}}, ::Type{<:Number}) where {T, D, U} =
+    Quantity{T, D, U}
+@inline concretize_type(::Type{Quantity{T, D}},
+                        ::Type{Quantity{TT, D, U} where TT}) where {T, D, U} =
+    Quantity{T, D, U}
+@inline concretize_type(::Type{Quantity{TT, D} where TT},
+                        ::Type{Quantity{T, D, U}}) where {T, D, U} = Quantity{T, D, U}
+@inline concretize_type(H::Type{<: Quantity{TT, D} where TT}, T::Type{<: Number}) where D =
+    hartree_concretize_type(H, T)
+@inline concretize_type(Q::Type{<: Quantity}, x::DenseArray) = concretize_type(Q, eltype(x))
+@inline concretize_type(Q::Type{<: Quantity}, x::AxisArray) = concretize_type(Q, eltype(x))
+@inline concretize_type(Q::Type{<: Quantity}, x::Number) = concretize_type(Q, typeof(x))
 end

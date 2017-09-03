@@ -3,13 +3,14 @@ module ArrayInitialization
 using DocStringExtensions
 using Unitful
 using AxisArrays
+using ArgCheck
 using ..ConstantArrays: ConstantArray
 using ..UnitfulHartree
 using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, ColinearSpin,
                 ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
-                is_spin_polarized
+                is_spin_polarized, concretize_type
 using ..Dispatch
-export add_spin_axis
+export wrap
 
 macro lintpragma(s) end
 @lintpragma("Ignore unused args")
@@ -98,7 +99,7 @@ for extension in [:zeros, :ones, :rand]
         """
         Base.$extension(T::Type{<:DD.Scalars.All}, C::SpinCategory,
                         dims::Tuple, ax::Tuple) = begin
-            length(ax) > (length(dims) + 1) && throw(ArgumentError("Too many axes"))
+            @argcheck length(ax) <= (length(dims) + 1) "Too many axes"
             comps = components(T, C)
             data = $extension(T, add_spin_axis(C, dims, length(comps)))
             # we can use a dummy array here since the underlying array (and indices) will be the
@@ -144,13 +145,13 @@ for extension in [:zeros, :ones, :similar]
     private = Symbol(:_, extension)
     @eval begin
         $private(T::Type{<:DD.Scalars.All}, ::SpinDegenerate, ::SpinDegenerate,
-               array::DD.AxisArrays.All) = $extension(array, T)
+            array::DD.AxisArrays.All) = $extension(array, concretize_type(T, array))
 
         $private(T::Type{<:DD.Scalars.All}, C::ColinearSpin,
                     ::SpinDegenerate, array::DD.AxisArrays.All) = begin
             comps = components(T, C)
             dims = add_spin_axis(C, size(array), length(comps))
-            data = $extension(array.data, T, dims)
+            data = $extension(array.data, concretize_type(T, array), dims)
             defaults = AxisArrays.default_axes(ConstantArray(0, size(array)), axes(array))
             AxisArray(data, add_spin_axis(C, defaults, Axis{:spin}(comps)))
         end
@@ -158,13 +159,13 @@ for extension in [:zeros, :ones, :similar]
         $private(T::Type{<:DD.Scalars.All}, C::ColinearSpin,
                     ::ColinearSpin, array::DD.AxisArrays.All) = begin
             dims = replace_spin_axis(T, C, size(array), axes(array))
-            AxisArray($extension(array.data, T, dims[1]), dims[2])
+            AxisArray($extension(array.data, concretize_type(T, array), dims[1]), dims[2])
         end
 
         $private(T::Type{<:DD.Scalars.All}, ::SpinDegenerate,
                     ::ColinearSpin, array::DD.AxisArrays.All) = begin
             dims = remove_spin_axis(size(array), axes(array))
-            AxisArray($extension(array.data, T, dims[1]), dims[2])
+            AxisArray($extension(array.data, concretize_type(T, array), dims[1]), dims[2])
         end
 
         Base.$extension(T::Type{<:DD.Scalars.All}, array::DD.AxisArrays.All) =
@@ -177,13 +178,41 @@ for extension in [:zeros, :ones, :similar]
 end
 
 Base.reinterpret(T::Type{<: DD.Scalars.All}, ::SpinDegenerate, array::DenseArray) =
-    AxisArray(reinterpret(T, array), axes(array))
+    AxisArray(reinterpret(concretize_type(T, array), array), axes(array))
 Base.reinterpret(T::Type{<: DD.Scalars.All}, ::ColinearSpinFirst, array::DenseArray) = 
-    AxisArray(reinterpret(T, array),
+    AxisArray(reinterpret(concretize_type(T, array), array),
               Axis{:spin}(components(T, ColinearSpinFirst())), Base.tail(axes(array))...)
 Base.reinterpret(T::Type{<: DD.Scalars.All}, C::ColinearSpin, array::DenseArray) =
-    AxisArray(reinterpret(T, array),
+    AxisArray(reinterpret(concretize_type(T, array), array),
               Base.front(axes(array))..., Axis{:spin}(components(T, C)))
+
+"""
+    wrap([T::Type{<: Dispatch.Scalars.All}], [P::SpinCategory], array)
+
+Wraps an existing array as a DFT array. The default spin-category is `SpinDegenerate`.
+If the type and units are explicitly specified (first argument)), then the array must be
+dimensionless. If they are not, then the array must have an element type `T` such that
+`T <: Dispatch.Scalars.All`.
+"""
+wrap(T::Type{<: DD.Scalars.All}, P::SpinCategory, array::DenseArray) = begin
+    @argcheck dimension(eltype(array)) == NoDims "Input array should be dimensionless"
+    reinterpret(T, P, array)
+end
+wrap(::SpinDegenerate, array::DenseArray{<: DD.Scalars.All}) = AxisArray(array)
+wrap(P::ColinearSpinFirst, array::DenseArray{<: DD.Scalars.All}) = begin
+    c = components(eltype(array), P)
+    @argcheck length(c) == size(array, 1) "Size of spin-axis does not match expectations"
+    AxisArray(array, Axis{:spin}(c))
+end
+wrap(P::ColinearSpin, array::DenseArray{<: DD.Scalars.All}) = begin
+    c = components(eltype(array), P)
+    @argcheck(length(c) == size(array, ndims(array)),
+              "Size of spin-axis does not match expectations")
+    AxisArray(array, Base.front(axes(array))..., Axis{:spin}(c))
+end
+wrap(array::DenseArray{<: DD.Scalars.All}) = wrap(SpinDegenerate(), array)
+wrap(T::Type{<: DD.Scalars.All}, array::DenseArray) =
+    wrap(concretize_type(T, array), SpinDegenerate(), array)
 
 """
 Converts axis to the requisite spin-axis location
