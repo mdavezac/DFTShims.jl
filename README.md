@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/mdavezac/DFTShims.jl.svg?branch=master)](https://travis-ci.org/mdavezac/DFTShims.jl)
+[![Coverage Status](https://coveralls.io/repos/mdavezac/DFTShims.jl/badge.svg)](https://coveralls.io/r/mdavezac/DFTShims.jl)
+
 # DFTShims
 
 This modules provides an interface to manipulate
