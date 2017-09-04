@@ -148,7 +148,7 @@ for extension in [:zeros, :ones, :similar]
             array::DD.AxisArrays.All) = $extension(array, concretize_type(T, array))
 
         $private(T::Type{<:DD.Scalars.All}, C::ColinearSpin,
-                    ::SpinDegenerate, array::DD.AxisArrays.All) = begin
+                 ::SpinDegenerate, array::DD.AxisArrays.All) = begin
             comps = components(T, C)
             dims = add_spin_axis(C, size(array), length(comps))
             data = $extension(array.data, concretize_type(T, array), dims)
@@ -157,7 +157,7 @@ for extension in [:zeros, :ones, :similar]
         end
 
         $private(T::Type{<:DD.Scalars.All}, C::ColinearSpin,
-                    ::ColinearSpin, array::DD.AxisArrays.All) = begin
+                 ::ColinearSpin, array::DD.AxisArrays.All) = begin
             dims = replace_spin_axis(T, C, size(array), axes(array))
             AxisArray($extension(array.data, concretize_type(T, array), dims[1]), dims[2])
         end
@@ -168,11 +168,11 @@ for extension in [:zeros, :ones, :similar]
             AxisArray($extension(array.data, concretize_type(T, array), dims[1]), dims[2])
         end
 
-        Base.$extension(T::Type{<:DD.Scalars.All}, array::DD.AxisArrays.All) =
+        Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All}) =
             $private(T, SpinCategory(array), SpinCategory(array), array)
 
-        Base.$extension(T::Type{<:DD.Scalars.All},
-                        wanted::SpinCategory, array::DD.AxisArrays.All) =
+        Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All},
+                        wanted::SpinCategory) =
             $private(T, wanted, SpinCategory(array), array)
     end
 end
