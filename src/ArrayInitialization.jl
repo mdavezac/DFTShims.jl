@@ -101,11 +101,11 @@ for extension in [:zeros, :ones, :rand]
                         dims::Tuple, ax::Tuple) = begin
             @argcheck length(ax) <= (length(dims) + 1) "Too many axes"
             comps = components(T, C)
-            data = $extension(T, add_spin_axis(C, dims, length(comps)))
-            # we can use a dummy array here since the underlying array (and indices) will be the
-            # standard one
+            data = $extension(T.parameters[1], add_spin_axis(C, dims, length(comps)))
+            # we can use a dummy array here since the underlying array (and indices) will be
+            # the standard one
             defaults = AxisArrays.default_axes(ConstantArray(0, dims), ax)
-            AxisArray(data, add_spin_axis(C, defaults, Axis{:spin}(comps)))
+            AxisArray(reinterpret(T, data), add_spin_axis(C, defaults, Axis{:spin}(comps)))
         end
         Base.$extension(T::Type{<:DD.Scalars.All}, C::SpinCategory, dims::Tuple) = begin
             comps = components(T, C)
