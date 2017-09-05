@@ -61,8 +61,18 @@ end
 
 """ Union of all polarization traits """
 abstract type SpinCategory end
-""" Trait for functions accepting ↑/↓ inputs """
+""" Trait for functions accepting input in the colinear spin approximation """
 abstract type ColinearSpin <: SpinCategory end
+"""
+Trait to differentiate between Base and specialized spin functions
+
+This type is used to select overloads of `Base.zeros` and friends that will change the
+spin-axis if needed. More specifically, if `ρ` is a spin-polarized `AxisArray`, then
+`Base.zeros(ρ, Dispatch.Scalars.∂³ϵ_∂ρ³, SpinAware)` is also spin-polarized and the
+spin-axis has the correct dimension (4 in this case). If `ρ` is not spin-polarized, then
+the call is equivalent to `Base.zeros(ρ, Dispatch.Scalars.∂³ϵ_∂ρ³)`.
+"""
+struct SpinAware <: SpinCategory end
 
 """ Spin-polarized input where the spin axis is always the fastest changing """
 struct ColinearSpinFirst <: ColinearSpin end

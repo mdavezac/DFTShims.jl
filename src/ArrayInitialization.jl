@@ -8,7 +8,7 @@ using ..ConstantArrays: ConstantArray
 using ..UnitfulHartree
 using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, ColinearSpin,
                 ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
-                is_spin_polarized, concretize_type
+                is_spin_polarized, concretize_type, SpinAware
 using ..Dispatch
 export wrap
 
@@ -168,7 +168,7 @@ for extension in [:zeros, :ones, :similar]
             AxisArray($extension(array.data, concretize_type(T, array), dims[1]), dims[2])
         end
 
-        Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All}) =
+        Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All}, ::SpinAware) =
             $private(T, SpinCategory(array), SpinCategory(array), array)
 
         Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All},

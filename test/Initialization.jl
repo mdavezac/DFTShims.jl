@@ -106,15 +106,15 @@ end
 
 @testset "From template array" begin
     ρ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
-    @test all(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²) .== 0u"∂²ϵ_∂σ²")
-    @test !(typeof(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²).data) <: AxisArray)
-    @test eltype(zeros(ρ, DD.Scalars.∂²ϵ_∂σ²)) == typeof(Int32(0)u"∂²ϵ_∂σ²")
-    @test eltype(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64})) == typeof(0u"∂²ϵ_∂σ²")
-    @test is_spin_polarized(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}))
-    @test length(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64})[Axis{:spin}]) == 6
+    @test all(zeros(ρ, DH.Scalars.∂²ϵ_∂σ², SpinAware()) .== 0u"∂²ϵ_∂σ²")
+    @test !(typeof(zeros(ρ, DH.Scalars.∂²ϵ_∂σ², SpinAware()).data) <: AxisArray)
+    @test eltype(zeros(ρ, DD.Scalars.∂²ϵ_∂σ², SpinAware())) == typeof(Int32(0)u"∂²ϵ_∂σ²")
+    @test eltype(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware())) == typeof(0u"∂²ϵ_∂σ²")
+    @test is_spin_polarized(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware()))
+    @test length(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware())[Axis{:spin}]) == 6
     @test find(x -> typeof(x) <: Axis{:spin}, 
-               axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}))) == [length(AXES) + 1]
-    @test axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}))[1:end - 1] == AXES
+               axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware()))) == [length(AXES) + 1]
+    @test axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware()))[1:end - 1] == AXES
     @test axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ², ColinearSpinFirst()))[2:end] == AXES
 
     @test !is_spin_polarized(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinDegenerate()))
@@ -156,7 +156,7 @@ end
     @test axes(ρₘ) == axes(ρ₀)
     @test all(ρₘ .== uconvert.(u"m^-3", ρ₀))
 
-    ϵ = similar(ρ₀, DH.Scalars.ϵ{Int64})
+    ϵ = similar(ρ₀, DH.Scalars.ϵ, SpinAware())
     @test is_spin_polarized(ϵ)
     @test !(typeof(ϵ.data) <: AxisArray)
 end
