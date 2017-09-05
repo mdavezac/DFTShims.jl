@@ -92,6 +92,9 @@ left unspecified in `Dispatch` but pertains to the atomic units in `Hartree`. In
 other words the aliases in `Scalars` allow multiple dispatch over scalars, whereas the
 aliases in `AxisArrays` allow multiple dispatch of axis-arrays of the scalars.
 
+For convenience, `DFTShims.Dispatch` provides
+`const Scalars === Dispatch.Dimensions.Scalars`.
+
 ## Spin
 
 The main advantage of using axis-arrays is that it allows us to define whether a quantity is

@@ -32,4 +32,7 @@ const Dimensioned = (
 )
 include("DispatchDimensions.jl")
 include("DispatchHartree.jl")
+
+""" Convenient access to scalar physical dimension types """
+const Scalars = Dimensions.Scalars
 end
