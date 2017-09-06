@@ -17,6 +17,9 @@ const UH = DFTShims.UnitfulHartree
     @test DH.Scalars.ρ{Float32} <: DD.Scalars.ρ
     @test DH.Scalars.ρ{Float32} <: DD.Scalars.ρ{Float32}
     @test DH.Scalars.ρ{Float32} === DD.Scalars.ρ{Float32, typeof(UH.ρ)}
+    @test DH.Scalars.ρ{Float32} <: DD.Scalars.All{Float32}
+    @test !(DH.Scalars.ρ{Int32} <: DD.Scalars.All{Float32})
+    @test !(DH.Scalars.ρ <: DD.Scalars.All{Float32})
 
     f = (::DH.Scalars.ρ{<: Integer}) -> :hartree_with_integer
     (::typeof(f))(::DH.Scalars.ρ) = :hartree_with_any_number
@@ -40,6 +43,12 @@ end
     @test !([1u"nm^-3", 2.0u"nm^-3"] isa DH.DenseArrays.ρ{Float64, 1})
 
     @test DH.DensityDenseArray{Int8, 2} === DD.DensityDenseArray{Int8, 2, typeof(u"ρ")}
+    @test DH.Arrays.ρ{Float32} <: DD.Arrays.All{Float32}
+    @test !(DH.Arrays.ρ{Int32} <: DD.Arrays.All{Float32})
+    @test !(DH.Arrays.ρ <: DD.Arrays.All{Float32})
+    @test DH.Arrays.ρ{Float32, 2} <: DD.Arrays.All{Float32, 2}
+    @test [1u"nm^-3", 2.0u"nm^-3"] isa DD.Arrays.ρ{Float64, 1}
+    @test !([1u"nm^-3", 2.0u"nm^-3"] isa DD.Arrays.ρ{Float64, 2})
 
     f = (::DH.Arrays.ρ{<: Integer}) -> :hartree_with_integer
     (::typeof(f))(::DH.Arrays.ρ) = :hartree_with_any_number
@@ -52,11 +61,3 @@ end
     @test f([1.0u"nm^-3"]) == :density_with_any_number
     @test f(AxisArray([1.0u"nm^-3"])) == :axis_density_with_any_number
 end
-
-# @testset "Similar" begin
-#     ρ = [1 2; 3 4]u"ρ"
-#
-#     @test eltype(ρ) === DH.Scalars.ρ{Int64}
-#     @test eltype(dft_similar(ρ, DD.Scalars.ρ{Int16})) === DH.Scalars.ρ{Int16}
-#     @test ndim(dft_similar(ρ, DD.Scalars.ρ{Int16})) === 2
-# end

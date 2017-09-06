@@ -10,7 +10,7 @@ macro lintpragma(s) end
 
 
 """ An axis array with dense memory allocation """
-const DFTAxisArray = AxisArray{T, N, <: DenseArray{T, N}} where N where T
+const DFTAxisArray = AxisArray{T, N, <: DenseArray{T, N}, A} where A where N where T
 """ Set of array types used in LibXC and AtomicDFT """
 const DFTArray =
     Union{DenseArray{T, N}, AxisArray{T, N, <: DenseArray{T, N}}} where N where T

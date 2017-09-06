@@ -31,6 +31,7 @@ module Scalars
             const $abbr = $name
         end
     end
+    const All = @eval Union{$((Expr(:curly, n, :T) for (n, a) in Dimensioned)...)} where T
     const ϵ = Eₕ
 end
 
@@ -43,6 +44,8 @@ module Arrays
             const $abbr = $name
         end
     end
+    const All = @eval Union{
+            $((Expr(:curly, n, :T, :N) for (n, a) in Dimensioned)...)} where {T, N}
     const ϵ = Eₕ
 end
 
@@ -55,6 +58,8 @@ module AxisArrays
             const $abbr = $name
         end
     end
+    const All = @eval Union{
+            $((Expr(:curly, n, :T, :N, :A) for (n, a) in Dimensioned)...)} where {T, N, A}
     const ϵ = Eₕ
 end
 
@@ -67,6 +72,8 @@ module DenseArrays
             const $abbr = $name
         end
     end
+    const All = @eval Union{
+                    $((Expr(:curly, n, :T, :N) for (n, a) in Dimensioned)...)} where {T, N}
     const ϵ = Eₕ
 end
 
