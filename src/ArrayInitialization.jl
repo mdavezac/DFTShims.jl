@@ -7,8 +7,8 @@ using ArgCheck
 using ..ConstantArrays: ConstantArray
 using ..UnitfulHartree
 using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, ColinearSpin,
-                ColinearSpinFirst, ColinearSpinLast, ColinearSpinPreferLast,
-                is_spin_polarized, concretize_type, SpinAware
+                ColinearSpinFirst, ColinearSpinLast, is_spin_polarized, concretize_type,
+                SpinAware
 using ..Dispatch
 export wrap
 
@@ -43,9 +43,7 @@ $(SIGNATURES)
 `n` is the number of dimensions in the array, and `s` is the location of the current spin
 axis, or 0 if there are none.
 """
-spin_axis_position(::Type{ColinearSpinPreferLast}, n::Integer, s::Integer) =
-    !(1 ≤ s ≤ n) ? n + 1: s
-spin_axis_position(::Type{ColinearSpinFirst}, ::Integer, ::Integer) = 1
+spin_axis_position(::Type{ColinearSpin{T}}, ::Integer, ::Integer) where T = T
 spin_axis_position(::Type{ColinearSpinLast}, n::Integer, s::Integer) =
     !(1 ≤ s ≤ n) ? n + 1: n
 spin_axis_position(S::SpinCategory, n::Integer, s::Integer) =
@@ -214,6 +212,17 @@ wrap(array::DenseArray{<: DD.Scalars.All}) = wrap(SpinDegenerate(), array)
 wrap(T::Type{<: DD.Scalars.All}, array::DenseArray) =
     wrap(concretize_type(T, array), SpinDegenerate(), array)
 
+_convert(::ColinearSpin{A}, ::ColinearSpin{A}, array::DD.AxisArrays.All) where A = begin
+    @lintpragma("Ignore use of undeclared array")
+    array
+end
+_convert(C::ColinearSpin, ::ColinearSpin, array::DD.AxisArrays.All) = begin
+    original = spin_axis_position(array)
+    final = spin_axis_position(C, ndims(array), original)
+    iₛ = insert!(deleteat!(collect(1:ndims(array)), original), final, original)
+    permutedims(array, iₛ)
+end
+
 """
 Converts axis to the requisite spin-axis location
 
@@ -222,16 +231,9 @@ $(SIGNATURES)
 If the spin-axis does not move, then a reference to the original array is returned.
 Otherwise, a new array is returned.
 """
-Base.convert(C::Type{<: ColinearSpin}, array::DD.AxisArrays.All) = begin
-    original = spin_axis_position(array)
-    final = spin_axis_position(C, ndims(array), original)
-    final == original && return array
-
-    iₛ = insert!(deleteat!(collect(1:ndims(array)), original), final, original)
-    permutedims(array, iₛ)
-end
-Base.convert(::Type{ColinearSpinPreferLast}, array::DD.AxisArrays.All) = array
-Base.convert(S::SpinCategory, array::DD.AxisArrays.All) = convert(typeof(S), array)
+Base.convert(::SpinAware, array::DD.AxisArrays.All) = array
+Base.convert(C::ColinearSpin, array::DD.AxisArrays.All) =
+    _convert(C, SpinCategory(array), array)
 
 Unitful.uconvert(u::Unitful.Units, array::AxisArray) = begin
     data = similar(array.data, typeof(uconvert(u, oneunit(eltype(array)))))

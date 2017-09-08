@@ -1,7 +1,7 @@
 module Traits
 export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components,
-       SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst,
-       ColinearSpinPreferLast, ColinearSpinLast, concretize_type
+       SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst, ColinearSpinLast,
+       concretize_type
 
 using DocStringExtensions
 using AxisArrays
@@ -62,7 +62,15 @@ end
 """ Union of all polarization traits """
 abstract type SpinCategory end
 """ Trait for functions accepting input in the colinear spin approximation """
-abstract type ColinearSpin <: SpinCategory end
+abstract type AbstractColinearSpin <: SpinCategory end
+""" Trait for functions accepting input in the colinear spin approximation """
+struct ColinearSpin{L} <: AbstractColinearSpin end
+
+""" Spin-polarized input where the spin axis is always the fastest changing """
+const ColinearSpinFirst = ColinearSpin{1}
+""" Spin-polarized input where the spin axis is always the slowest changing """
+const ColinearSpinLast = ColinearSpin{:end}
+
 """
 Trait to differentiate between Base and specialized spin functions
 
@@ -74,17 +82,6 @@ the call is equivalent to `Base.zeros(ρ, Dispatch.Scalars.∂³ϵ_∂ρ³)`.
 """
 struct SpinAware <: SpinCategory end
 
-""" Spin-polarized input where the spin axis is always the fastest changing """
-struct ColinearSpinFirst <: ColinearSpin end
-""" Spin-polarized input where the spin axis is always the slowest changing """
-struct ColinearSpinLast <: ColinearSpin end
-"""
-Spin-polarized input where the spin axis is preferentially the fastest changing
-
-This is the default spin setup.
-"""
-struct ColinearSpinPreferLast <: ColinearSpin end
-
 """ Traits for unpolarized inputs """
 struct SpinDegenerate <: SpinCategory end
 
@@ -92,17 +89,17 @@ struct SpinDegenerate <: SpinCategory end
 
 - no spin-axis -> SpinDegenerate
 - fastest changing dimension -> ColinearSpinFirst
-- other changing dimension -> ColinearSpinPreferLast
+- `n`th dim -> ColinearSpin{n}
 
 """
 @generated (::Type{SpinCategory})(array::AxisArray) = begin
     index = findfirst(is_spin_polarized, array)
     if index == 0
         :(SpinDegenerate())
-    elseif index == 1
-        :(ColinearSpinFirst())
+    elseif index == length(array.parameters[end].parameters)
+        :(ColinearSpinLast())
     else
-        :(ColinearSpinPreferLast())
+        :(ColinearSpin{$index}())
     end
 end
 (::Type{SpinCategory})(S::SpinCategory) = S
@@ -111,8 +108,10 @@ end
 However, if the spin axis is already given, functions following this traits should not move
 it.
 """
-(::Type{ColinearSpin})() = ColinearSpinPreferLast()
+(::Type{ColinearSpin})() = ColinearSpin{:end}()
 
+""" Supertype of all functional categories """
+abstract type FunctionalCategory end
 """ Trait identifying the LDA functional category """
 const LDA = Val{:lda}
 """ Trait identifying the LDA functional category """

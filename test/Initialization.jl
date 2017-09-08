@@ -41,6 +41,8 @@ const unpolarized = SpinDegenerate()
     @test is_spin_polarized(ϵ)
     @test :spin ∈ axisnames(ϵ)
     @test size(ϵ) == (SIZES..., 2)
+
+    @test @inferred(SpinCategory(ρ)) == SpinDegenerate()
 end
 
 @testset "Axis Manipulations" begin
@@ -61,8 +63,6 @@ end
     @test actual == ((4, 3, 2), (AXES..., Axis{:spin}((:α, :β))))
 
     saxes = Axis{:spin}((:u, :d)), AXES... 
-    actual = @inferred replace_spin_axis(Dρ, polarized, (2, 3, 4), saxes)
-    @test actual == ((2, 3, 4), (Axis{:spin}((:α, :β)), AXES...))
     actual = @inferred replace_spin_axis(Dρ, ColinearSpinFirst(), (2, 3, 4), saxes)
     @test actual == ((2, 3, 4), (Axis{:spin}((:α, :β)), AXES...))
     actual = @inferred replace_spin_axis(Dρ, ColinearSpinLast(), (2, 3, 4), saxes)
@@ -74,6 +74,7 @@ end
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == (SIZES..., 2)
     @test axes(ρ, 3) == Axis{:spin}((:α, :β))
+    @test @inferred(SpinCategory(ρ)) == ColinearSpin()
 
     ρ = zeros(Dρ{Int64}, polarized, SIZES..., AXES...)
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
@@ -95,9 +96,10 @@ end
     @test typeof(ρ) <: AxisArray
     @test eltype(ρ) == Dρ{Int64}
     @test is_spin_polarized(ρ)
+    @test @inferred(SpinCategory(ρ)) == ColinearSpinFirst()
 
-    # @test_throws(ArgumentError,
-                 # reinterpret(Dρ{Int64}, ColinearSpinPreferLast(), [1 1 1; 2 2 2]))
+    @test_throws(ArgumentError,
+                 reinterpret(Dρ{Int64}, ColinearSpinLast(), [1 1 1; 2 2 2]))
 
     @inferred zeros(Dρ{Int64}, polarized, SIZES)
     @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES)
@@ -136,21 +138,26 @@ end
     @test is_spin_polarized(ϵ)
     @test :spin ∈ axisnames(ϵ)
     @test size(ϵ) == (SIZES..., 2)
+
+    @inferred zeros(ρ, DH.Scalars.∂²ϵ_∂σ², SpinAware())
+    @inferred zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int32}, SpinAware())
+    @inferred zeros(ρ, DD.Scalars.∂²ϵ_∂σ², ColinearSpin())
 end
 
 @testset "Convert between arrays" begin
     ρₙ = zeros(Dρ{Int32}, true, SIZES..., AXES...)
     ρₙ[:] = (1:length(ρₙ)) * oneunit(eltype(ρₙ))
-    @test convert(ColinearSpinLast, ρₙ) === ρₙ
-    @test !(typeof(convert(ColinearSpinLast, ρₙ).data) <: AxisArray)
-    @test convert(ColinearSpinPreferLast, ρₙ) === ρₙ
-    ρ₀  = convert(ColinearSpinFirst, ρₙ)
+    @test @inferred(convert(ColinearSpinLast(), ρₙ)) === ρₙ
+    @test !(typeof(convert(ColinearSpinLast(), ρₙ).data) <: AxisArray)
+    @test convert(ColinearSpinLast(), ρₙ) === ρₙ
+    ρ₀  = convert(ColinearSpinFirst(), ρₙ)
     @test axes(ρ₀) == (axes(ρₙ, Axis{:spin}), AXES...)
     @test !(typeof(ρ₀.data) <: AxisArray)
 
-    ρ = convert(ColinearSpinLast, ρ₀)
+    ρ = convert(ColinearSpinLast(), ρ₀)
     @test axes(ρ) == (AXES..., axes(ρₙ, Axis{:spin}))
-    @test convert(ColinearSpinPreferLast, ρ₀) === ρ₀
+    @test all(ρ .== ρₙ)
+    @test @inferred(convert(ColinearSpinLast(), ρ)) === ρ
 
     ρₘ = uconvert(u"m^-3", ρ₀)
     @test axes(ρₘ) == axes(ρ₀)
