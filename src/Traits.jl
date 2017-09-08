@@ -113,33 +113,31 @@ it.
 """ Supertype of all functional categories """
 abstract type FunctionalCategory end
 """ Trait identifying the LDA functional category """
-const LDA = Val{:lda}
+type LDA <: FunctionalCategory end
 """ Trait identifying the LDA functional category """
-const GGA = Val{:gga}
-""" Union of all functional categories """
-const FunctionalCategory = Union{LDA, GGA}
+type GGA <: FunctionalCategory end
 
 """
 Same as Unitful.dimension but for still abstract quantities
 """
-unitful_dimensions(::Type{<: Quantity{T, D, U} where {U, T}}) where D = D()
+unitful_dimensions(::Type{<: Quantity{T, D} where T}) where D = D()
 
 """
 Figures out functional category, whether LDA or GGA
 
 $(SIGNATURES)
 """
-(::Type{FunctionalCategory})(::typeof(dimension(UH.ρ))) = LDA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂ρ))) = LDA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ²))) = LDA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ³))) = LDA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.σ))) = GGA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂σ))) = GGA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ))) = GGA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂σ²))) = GGA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ))) = GGA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²))) = GGA
-(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂σ³))) = GGA
+(::Type{FunctionalCategory})(::typeof(dimension(UH.ρ)))::LDA = LDA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂ρ))) = LDA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ²))) = LDA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ³))) = LDA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.σ))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂σ))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂σ²))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂σ³))) = GGA()
 (::Type{FunctionalCategory})(u::Unitful.FreeUnits) = FunctionalCategory(dimension(u))
 (::Type{FunctionalCategory})(u::DD.Scalars.All) = FunctionalCategory(dimension(u))
 (::Type{FunctionalCategory})(T::Type{<: DD.Scalars.All}) =

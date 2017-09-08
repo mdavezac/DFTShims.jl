@@ -53,26 +53,25 @@ end
 end
 
 @testset "functional category" begin
-    @test FunctionalCategory(UnitfulHartree.ρ) === LDA
-    @test FunctionalCategory(UnitfulHartree.∂ϵ_∂σ) === GGA
-    @test FunctionalCategory(UnitfulHartree.∂²ϵ_∂ρ²) === LDA
-    @test FunctionalCategory(UnitfulHartree.∂²ϵ_∂ρ∂σ) === GGA
-    @test FunctionalCategory(DD.Scalars.∂²ϵ_∂σ²) === GGA
-    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ³) === LDA
-    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ²∂σ) === GGA
-    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ∂σ²) === GGA
-    @test FunctionalCategory(UnitfulHartree.∂³ϵ_∂σ³) === GGA
+    @test @inferred(FunctionalCategory(DH.Scalars.ρ{Int64})) === LDA()
+    @test @inferred(FunctionalCategory(DH.Scalars.∂ϵ_∂σ)) === GGA()
+    @test @inferred(FunctionalCategory(DD.Scalars.∂²ϵ_∂ρ²)) === LDA()
+    @test @inferred(FunctionalCategory(DD.Scalars.∂²ϵ_∂ρ∂σ)) === GGA()
+    @test @inferred(FunctionalCategory(DD.Scalars.∂²ϵ_∂σ²)) === GGA()
+    @test @inferred(FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ³)) === LDA()
+    @test @inferred(FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ²∂σ)) === GGA()
+    @test @inferred(FunctionalCategory(UnitfulHartree.∂³ϵ_∂ρ∂σ²)) === GGA()
+    @test @inferred(FunctionalCategory(UnitfulHartree.∂³ϵ_∂σ³)) === GGA()
 end
 
 @testset "Type concretization" begin
-    @test concretize_type(DD.Scalars.ρ, Int16) === DH.Scalars.ρ{Int16}
-    @test concretize_type(DH.Scalars.ρ, Int16) === DH.Scalars.ρ{Int16}
-    @test concretize_type(typeof(1.0u"m"), Int16) === typeof(1.0u"m")
-    @test concretize_type(DH.Scalars.ρ, Quantity{Int16, D, U} where {D, U}) ===
+    @test @inferred(concretize_type(DD.Scalars.ρ, Int16)) === DH.Scalars.ρ{Int16}
+    @test @inferred(concretize_type(DH.Scalars.ρ, Int16)) === DH.Scalars.ρ{Int16}
+    @test @inferred(concretize_type(typeof(1.0u"m"), Int16)) === typeof(1.0u"m")
+    @test @inferred(concretize_type(DH.Scalars.ρ, Quantity{Int16, D, U} where {D, U})) ===
             DH.Scalars.ρ{Int16}
-    @test concretize_type(DD.Scalars.ρ, Quantity{Int16, D, U} where {D, U}) ===
+    @test @inferred(concretize_type(DD.Scalars.ρ, Quantity{Int16, D, U} where {D, U})) ===
             DH.Scalars.ρ{Int16}
-    @test concretize_type(DD.Scalars.ρ,
-                          Quantity{Int16, typeof(dimension(1u"C")), U} where U) ===
-            DH.Scalars.ρ{Int16}
+    const Q = Quantity{Int16, typeof(dimension(1u"C")), U} where U
+    @test @inferred(concretize_type(DD.Scalars.ρ, Q)) === DH.Scalars.ρ{Int16}
 end
