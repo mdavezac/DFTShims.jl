@@ -212,15 +212,11 @@ wrap(array::DenseArray{<: DD.Scalars.All}) = wrap(SpinDegenerate(), array)
 wrap(T::Type{<: DD.Scalars.All}, array::DenseArray) =
     wrap(concretize_type(T, array), SpinDegenerate(), array)
 
-_convert(::ColinearSpin{A}, ::ColinearSpin{A}, array::DD.AxisArrays.All) where A = begin
-    @lintpragma("Ignore use of undeclared array")
-    array
-end
-_convert(C::ColinearSpin, ::ColinearSpin, array::DD.AxisArrays.All) = begin
-    original = spin_axis_position(array)
-    final = spin_axis_position(C, ndims(array), original)
-    iₛ = insert!(deleteat!(collect(1:ndims(array)), original), final, original)
-    permutedims(array, iₛ)
+""" Helper functions to convert between arrays with different units and memory layout """
+_convert(T::Type{<:DD.Scalars.All}, C::ColinearSpin,
+         C′::ColinearSpin, array::DD.AxisArrays.All) = begin
+    T′ = concretize_type(T, array)
+    (T′ == T && C == C′) ? array: copy!(similar(array, T, C), array)
 end
 
 """
@@ -232,8 +228,14 @@ If the spin-axis does not move, then a reference to the original array is return
 Otherwise, a new array is returned.
 """
 Base.convert(::SpinAware, array::DD.AxisArrays.All) = array
+Base.convert(T::Type{<: DD.Scalars.All}, ::SpinAware, array::DD.AxisArrays.All) =
+    _convert(concretize_type(T, array), SpinCategory(array), SpinCategory(array), array)
 Base.convert(C::ColinearSpin, array::DD.AxisArrays.All) =
-    _convert(C, SpinCategory(array), array)
+    _convert(eltype(array), C, SpinCategory(array), array)
+Base.convert(T::Type{<: DD.Scalars.All}, C::SpinCategory, array::DD.AxisArrays.All) =
+    _convert(T, C, SpinCategory(array), array)
+Base.convert(T::Type{<: DD.Scalars.All}, array::DD.AxisArrays.All) =
+    _convert(T, SpinCategory(array), SpinCategory(array), array)
 
 Unitful.uconvert(u::Unitful.Units, array::AxisArray) = begin
     data = similar(array.data, typeof(uconvert(u, oneunit(eltype(array)))))

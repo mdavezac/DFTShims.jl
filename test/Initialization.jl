@@ -149,19 +149,20 @@ end
     ρₙ[:] = (1:length(ρₙ)) * oneunit(eltype(ρₙ))
     @test @inferred(convert(ColinearSpinLast(), ρₙ)) === ρₙ
     @test !(typeof(convert(ColinearSpinLast(), ρₙ).data) <: AxisArray)
-    @test convert(ColinearSpinLast(), ρₙ) === ρₙ
-    ρ₀  = convert(ColinearSpinFirst(), ρₙ)
+    ρ₀  = @inferred convert(ColinearSpinFirst(), ρₙ)
     @test axes(ρ₀) == (axes(ρₙ, Axis{:spin}), AXES...)
     @test !(typeof(ρ₀.data) <: AxisArray)
 
-    ρ = convert(ColinearSpinLast(), ρ₀)
+    ρ = @inferred convert(ColinearSpinLast(), ρ₀)
     @test axes(ρ) == (AXES..., axes(ρₙ, Axis{:spin}))
     @test all(ρ .== ρₙ)
     @test @inferred(convert(ColinearSpinLast(), ρ)) === ρ
 
-    ρₘ = uconvert(u"m^-3", ρ₀)
+    @test_throws InexactError convert(typeof(1u"m^-3"), ColinearSpinFirst(), ρₙ)
+    ρₘ = @inferred convert(typeof(1.0u"m^-3"), ColinearSpinFirst(), ρₙ)
     @test axes(ρₘ) == axes(ρ₀)
-    @test all(ρₘ .== uconvert.(u"m^-3", ρ₀))
+    @test ρₘ ≈ ρ₀
+    @test !(ustrip(ρₘ) ≈ ustrip(ρ₀))
 
     ϵ = similar(ρ₀, DH.Scalars.ϵ, SpinAware())
     @test is_spin_polarized(ϵ)
@@ -189,3 +190,4 @@ end
     @test is_spin_polarized(wrap(DD.Scalars.ρ, ColinearSpinFirst(), [1 2 3; 4 5 6]))
     @test_throws ArgumentError wrap(DD.Scalars.ρ, ColinearSpin(), [1 2 3; 4 5 6])
 end
+

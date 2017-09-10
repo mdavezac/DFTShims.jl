@@ -166,4 +166,5 @@ It is also possible to convert between different spin-axis locations with:
 
 ```Julia
 convert(ColinearSpinLast(), c)
+convert(Dispatch.Hartree.ρ{Float64}, ColinearSpinFirst(), c)
 ```
