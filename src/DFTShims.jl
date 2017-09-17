@@ -21,10 +21,10 @@ export DFTArray, DFTAxisArray, Dispatch
 include("Traits.jl")
 using .Traits: ColinearSpin, ColinearSpinFirst, ColinearSpinLast, SpinDegenerate,
                SpinCategory, FunctionalCategory, GGA, LDA, components, is_spin_polarized,
-               has_axis, concretize_type, SpinAware
+               has_axis, concretize_type, SpinAware, standard_name
 export ColinearSpin, ColinearSpinFirst, ColinearSpinLast, SpinDegenerate, SpinCategory,
        FunctionalCategory, GGA, LDA, components, is_spin_polarized, has_axis,
-       concretize_type, SpinAware
+       concretize_type, SpinAware, standard_name
 
 include("ConstantArrays.jl")
 using .ConstantArrays

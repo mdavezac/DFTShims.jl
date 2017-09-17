@@ -76,7 +76,7 @@ end
     @test axes(ρ, 3) == Axis{:spin}((:α, :β))
     @test @inferred(SpinCategory(ρ)) == ColinearSpin()
 
-    ρ = zeros(Dρ{Int64}, polarized, SIZES..., AXES...)
+    ρ = @inferred zeros(Dρ{Int64}, polarized, AXES)
     @test typeof(ρ) <: AxisArray{Dρ{Int64}}
     @test size(ρ) == (SIZES..., 2)
     @test axes(ρ, 1) == AXES[1]
@@ -87,7 +87,7 @@ end
                  zeros(Dρ{Int64}, polarized, SIZES..., AXES..., Axis{:aa}((1, 2))))
 
     const D∂³ϵ_∂ρ∂σ² = DH.Scalars.∂³ϵ_∂ρ∂σ²
-    ∂³ϵ_∂ρ∂σ² = zeros(D∂³ϵ_∂ρ∂σ²{Int16}, polarized, SIZES..., AXES...)
+    ∂³ϵ_∂ρ∂σ² = @inferred zeros(D∂³ϵ_∂ρ∂σ²{Int16}, polarized, AXES)
     @test size(∂³ϵ_∂ρ∂σ²) == (SIZES..., 12)
     @test axes(∂³ϵ_∂ρ∂σ², 1) == AXES[1]
     @test axes(∂³ϵ_∂ρ∂σ², 2) == AXES[2]
@@ -97,12 +97,19 @@ end
     @test eltype(ρ) == Dρ{Int64}
     @test is_spin_polarized(ρ)
     @test @inferred(SpinCategory(ρ)) == ColinearSpinFirst()
+    
+    ∂ϵ_∂ρ = @inferred rand(typeof(1u"eV*nm^3"), ColinearSpin{length(AXES)}(), AXES)
+    @test axes(∂ϵ_∂ρ, length(AXES)) isa Axis{:spin}
+    @test ndims(∂ϵ_∂ρ) == length(AXES) + 1
 
     @test_throws(ArgumentError,
                  reinterpret(Dρ{Int64}, ColinearSpinLast(), [1 1 1; 2 2 2]))
 
     @inferred zeros(Dρ{Int64}, polarized, SIZES)
+    @inferred zeros(Dρ{Int64}, polarized, AXES)
+    @inferred rand(typeof(1u"eV*nm^3"), ColinearSpin{length(AXES)}(), AXES)
     @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES)
+    @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES[1:1])
     @inferred zeros(Dρ{Int64}, polarized, SIZES, AXES[1:1])
 end
 

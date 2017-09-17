@@ -25,8 +25,15 @@ _size(T::Type{<: DD.Scalars.All}, ::ColinearSpin,
     (size(object)..., length(components(object)))
 
 add_spin_axis(::SpinDegenerate, tup::Tuple, ::Any) = tup
-add_spin_axis(::ColinearSpin, tup::Tuple, axis::Any) = tup..., axis
-add_spin_axis(::ColinearSpinFirst, tup::Tuple, axis::Any) = axis, tup...
+add_spin_axis(::ColinearSpinLast, tup::Tuple, axis::Any) = tup..., axis
+add_spin_axis(::ColinearSpin{N}, tup::Tuple, axis::Any) where N = begin
+    @lintpragma("Ignore use of undeclared variable N")
+    @lintpragma("Ignore use of undeclared variable axis")
+    @lintpragma("Ignore use of undeclared variable tup")
+    top, down = Base.IteratorsMD.split(tup, Val{N})
+
+    Base.front(top)..., axis, Base.last(top), down...
+end
 
 replace_spin_axis(T::Type{<: DD.Scalars.All}, ::SpinDegenerate,
                   sizes::Tuple, ax::Tuple) = begin
@@ -111,6 +118,24 @@ for extension in [:zeros, :ones, :rand]
             defaults = AxisArrays.default_axes(ConstantArray(0, dims))
             AxisArray(data, add_spin_axis(C, defaults, Axis{:spin}(comps)))
         end
+        Base.$extension(T::Type{<:DD.Scalars.All}, C::SpinCategory,
+                        ax::Tuple{Axis, Vararg{Axis}}) = begin
+            @argcheck(SpinCategory(ax) isa SpinDegenerate,
+                      "Do not include Spin axis explicitly when specifying spin category")
+            $extension(T, C, length.(ax), ax)
+        end
+        Base.$extension(T::Type{<:DD.Scalars.All}, C::SpinCategory, ax::Axis...) =
+            $extension(T, C, ax)
+        Base.$extension(T::Type{<:DD.Scalars.All}, ax::Axis...) = $extension(T, ax)
+        Base.$extension(T::Type{<:DD.Scalars.All}, ax::Tuple{Axis, Vararg{Axis}}) = begin
+            const C = SpinCategory(ax)
+            if C isa ColinearSpin
+                index = findfirst(a -> a isa Axis{:spin}, ax)
+                @argcheck(length(components(T, C)) == length(ax[index]),
+                          "Incorrect spin components for given input type")
+            end
+            AxisArray(reinterpret(T, $extension(T.parameters[1], length.(ax))), ax)
+        end
 
         """
         Creates an array for the given DFT quantity
@@ -168,7 +193,10 @@ for extension in [:zeros, :ones, :similar]
 
         Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All}, ::SpinAware) =
             $private(T, SpinCategory(array), SpinCategory(array), array)
-
+        Base.$extension(array::DD.AxisArrays.All, ::SpinAware) =
+            $private(eltype(array), SpinCategory(array), SpinCategory(array), array)
+        Base.$extension(array::DD.AxisArrays.All, C::SpinCategory) =
+            $private(eltype(array), C, SpinCategory(array), array)
         Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All},
                         wanted::SpinCategory) =
             $private(T, wanted, SpinCategory(array), array)

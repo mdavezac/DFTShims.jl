@@ -1,7 +1,7 @@
 module Traits
 export has_axis, is_spin_polarized, ColinearSpin, SpinDegenerate, components,
        SpinCategory, FunctionalCategory, LDA, GGA, ColinearSpinFirst, ColinearSpinLast,
-       concretize_type
+       concretize_type, standard_name
 
 using DocStringExtensions
 using AxisArrays
@@ -92,11 +92,12 @@ struct SpinDegenerate <: SpinCategory end
 - `n`th dim -> ColinearSpin{n}
 
 """
-@generated (::Type{SpinCategory})(array::AxisArray) = begin
-    index = findfirst(is_spin_polarized, array)
+(::Type{SpinCategory})(array::AxisArray) = SpinCategory(axes(array))
+@generated (::Type{SpinCategory})(ax::Tuple{Axis, Vararg{Axis}}) = begin
+    index = findfirst(is_spin_polarized, ax.parameters)
     if index == 0
         :(SpinDegenerate())
-    elseif index == length(array.parameters[end].parameters)
+    elseif index == length(ax.parameters)
         :(ColinearSpinLast())
     else
         :(ColinearSpin{$index}())
@@ -198,6 +199,8 @@ components(T::Type{<: DD.Scalars.All}, P::SpinCategory) =
 function hartree_concretize_type end
 for (_, name) in Dispatch.Dimensioned
     @eval begin
+        @inline hartree_concretize_type(T::Type{<:DD.Scalars.$name}) =
+            hartree_concretize_type(DH.Scalars.$name, T)
         @inline hartree_concretize_type(::Type{DD.Scalars.$name},
                                         ::Type{<: Quantity{T}}) where T =
             DH.Scalars.$name{T}
@@ -236,4 +239,12 @@ concretize_type(typeof(1.0u"m^-3"), Int16) === typeof(Int16(1)u"m^-3")
 @inline concretize_type(Q::Type{<: Quantity}, x::DenseArray) = concretize_type(Q, eltype(x))
 @inline concretize_type(Q::Type{<: Quantity}, x::AxisArray) = concretize_type(Q, eltype(x))
 @inline concretize_type(Q::Type{<: Quantity}, x::Number) = concretize_type(Q, typeof(x))
+
+""" Gets standard name for a given physical dimension """
+function standard_name end
+for (_, name) in Dispatch.Dimensioned
+    @eval standard_name(::Type{<: DD.Scalars.$name}) = $(QuoteNode(name))
+end
+standard_name(n::DD.Scalars.All) = standard_name(typeof(n))
+standard_name(array::AbstractArray) = standard_name(eltype(array))
 end
