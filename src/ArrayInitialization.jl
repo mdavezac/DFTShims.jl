@@ -200,6 +200,28 @@ for extension in [:zeros, :ones, :similar]
         Base.$extension(array::DD.AxisArrays.All, T::Type{<:DD.Scalars.All},
                         wanted::SpinCategory) =
             $private(T, wanted, SpinCategory(array), array)
+
+        Base.$extension(array::DD.DenseArrays.All, T::Type{<:DD.Scalars.All},
+                        ::SpinDegenerate) = similar(array, T)
+        Base.$extension(array::DD.DenseArrays.All, T::Type{<:DD.Scalars.All},
+                        C::ColinearSpin{N}) where N = begin
+            @lintpragma("Ignore use of undeclared variable array")
+            @lintpragma("Ignore use of undeclared variable C")
+            @lintpragma("Ignore use of undeclared variable T")
+            @argcheck 1 ≤ N ≤ ndims(array)
+            left, right = Base.IteratorsMD.split(size(array), Val{N})
+            n = Base.last(left)
+            @argcheck n == length(components(eltype(array), C))
+
+            n′ = length(components(T, C))
+            similar(array, T, Base.front(left)..., n′, right...)
+        end
+        Base.$extension(array::DD.DenseArrays.All, T::Type{<:DD.Scalars.All},
+                        C::ColinearSpinLast) = begin
+            @argcheck size(array, ndims(array)) == length(components(eltype(array), C))
+            n′ = length(components(T, C))
+            similar(array, T, Base.front(size(array))..., n′)
+        end
     end
 end
 
