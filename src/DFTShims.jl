@@ -3,7 +3,7 @@ module DFTShims
 using Unitful
 using AxisArrays
 
-if Pkg.installed("AxisArrays") < v"0.1.5"
+if Pkg.installed("AxisArrays") < v"0.2.1"
     include("AxisArrays.v0.1.x.jl")
 end
 
