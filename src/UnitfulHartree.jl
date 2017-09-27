@@ -56,7 +56,7 @@ const μ_b = e₀*ħ/(2mₑ)
 const ϵ₀ = 1/(4π*kₑ)
 
 @unit ρ         "ρ"         Density                         (1a₀)^-3       false
-@unit σ         "σ"         ContractedDensityGradient       (1a₀)^-8       false
+@unit σₑ        "σₑ"        ContractedDensityGradient       (1a₀)^-8       false
 @unit ∂ϵ_∂ρ     "∂ϵ_∂ρ"     FirstDensityDerivative          (1Eₕ)*(1a₀)^3  false
 @unit ∂ϵ_∂σ     "∂ϵ_∂σ"     FirstGradientDerivative         (1Eₕ)*(1a₀)^8  false
 @unit ∂²ϵ_∂ρ²   "∂²ϵ_∂ρ²"   SecondDensityDerivative         (1Eₕ)*(1a₀)^6  false
@@ -67,6 +67,7 @@ const ϵ₀ = 1/(4π*kₑ)
 @unit ∂³ϵ_∂ρ²∂σ "∂³ϵ_∂ρ²∂σ" ThirdDensity2GradientDerivative (1Eₕ)*(1a₀)^14 false
 @unit ∂³ϵ_∂ρ∂σ² "∂³ϵ_∂ρ∂σ²" ThirdDensityGradient2Derivative (1Eₕ)*(1a₀)^19 false
 const ϵ = Eₕ
+const σ = σₑ
 
 
 # Some gymnastics required here because if we precompile, we cannot add to
