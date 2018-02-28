@@ -169,7 +169,7 @@ end
     ρₘ = @inferred convert(typeof(1.0u"m^-3"), ColinearSpinFirst(), ρₙ)
     @test axes(ρₘ) == axes(ρ₀)
     @test ρₘ ≈ ρ₀
-    @test !(ustrip(ρₘ) ≈ ustrip(ρ₀))
+    @test !(ustrip.(ρₘ) ≈ ustrip.(ρ₀))
 
     ϵ = similar(ρ₀, DH.Scalars.ϵ, SpinAware())
     @test is_spin_polarized(ϵ)
