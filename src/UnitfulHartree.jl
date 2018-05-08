@@ -22,7 +22,7 @@ macro lintpragma(s) end
 @lintpragma("Ignore use of undeclared variable Density")
 @lintpragma("Ignore use of undeclared variable ρ")
 @lintpragma("Ignore use of undeclared variable ContractedDensityGradient")
-@lintpragma("Ignore use of undeclared variable σ")
+@lintpragma("Ignore use of undeclared variable σₑ")
 @lintpragma("Ignore use of undeclared variable FirstDensityDerivative")
 @lintpragma("Ignore use of undeclared variable ∂ϵ_∂ρ")
 @lintpragma("Ignore use of undeclared variable FirstGradientDerivative")
@@ -67,7 +67,9 @@ const ϵ₀ = 1/(4π*kₑ)
 @unit ∂³ϵ_∂ρ²∂σ "∂³ϵ_∂ρ²∂σ" ThirdDensity2GradientDerivative (1Eₕ)*(1a₀)^14 false
 @unit ∂³ϵ_∂ρ∂σ² "∂³ϵ_∂ρ∂σ²" ThirdDensityGradient2Derivative (1Eₕ)*(1a₀)^19 false
 const ϵ = Eₕ
-const σ = σₑ
+const rho = ρ
+const sig = σₑ
+const Eh = Eₕ
 
 
 # Some gymnastics required here because if we precompile, we cannot add to

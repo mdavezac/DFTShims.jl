@@ -17,7 +17,7 @@ atomic units, as well as some DFT specific quantities.
 | abbreviation | Typename                | abbreviation | Typename                        |
 |--------------|-------------------------|--------------|---------------------------------|
 | mₑ           | ElectronMass            | ρ            | Density                         |
-| e₀           | ElementaryCharge        | σ            | ContractedDensityGradient       |
+| e₀           | ElementaryCharge        | σₑ           | ContractedDensityGradient       |
 | kₑ           | CoulombForceConstant    | ∂ϵ_∂ρ        | FirstDensityDerivative          |
 | ħ            | ReducedPlanckConstant   | ∂ϵ_∂σ        | FirstGradientDerivative         |
 | a₀           | BohrRadius              | ∂²ϵ_∂ρ²      | SecondDensityDerivative         |

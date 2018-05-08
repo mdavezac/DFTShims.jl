@@ -132,7 +132,7 @@ $(SIGNATURES)
 (::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂ρ))) = LDA()
 (::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ²))) = LDA()
 (::Type{FunctionalCategory})(::typeof(dimension(UH.∂³ϵ_∂ρ³))) = LDA()
-(::Type{FunctionalCategory})(::typeof(dimension(UH.σ))) = GGA()
+(::Type{FunctionalCategory})(::typeof(dimension(UH.σₑ))) = GGA()
 (::Type{FunctionalCategory})(::typeof(dimension(UH.∂ϵ_∂σ))) = GGA()
 (::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ))) = GGA()
 (::Type{FunctionalCategory})(::typeof(dimension(UH.∂²ϵ_∂σ²))) = GGA()
@@ -163,7 +163,7 @@ components(::typeof(dimension(UH.ϵ)), ::ColinearSpin) = :α, :β
 components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::ColinearSpin) = :∂α, :∂β
 components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::ColinearSpin) = :∂α², :∂α∂β, :∂²β 
 components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::ColinearSpin) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
-components(::typeof(dimension(UH.σ)), ::ColinearSpin) = :σαα, :σαβ, :σββ
+components(::typeof(dimension(UH.σₑ)), ::ColinearSpin) = :σαα, :σαβ, :σββ
 components(::typeof(dimension(UH.∂ϵ_∂σ)), ::ColinearSpin) = :∂σαα, :∂σαβ, :∂σββ
 components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::ColinearSpin) = 
     :∂α∂σαα, :∂α∂σαβ, :∂α∂σββ, :∂β∂σαα, :∂β∂σαβ, :∂β∂σββ
@@ -182,7 +182,7 @@ components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::ColinearSpin) = (
     :∂σαα³, :∂σαα²∂σαβ, :∂σαα²∂σββ, :∂σαα∂σαβ², :∂σαα∂σαβ∂σββ, :∂σαα∂σββ², 
     :∂σαβ³, :∂σαβ²∂σββ, :∂σαβ∂σββ², :∂σββ³
 )
-components(::typeof(dimension(UH.σ)), ::SpinDegenerate) = (:σ,)
+components(::typeof(dimension(UH.σₑ)), ::SpinDegenerate) = (:σ,)
 components(::typeof(dimension(UH.∂ϵ_∂σ)), ::SpinDegenerate) = (:∂σ,)
 components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::SpinDegenerate) = (:∂ρ∂σ,)
 components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::SpinDegenerate) = (:∂σ²,)

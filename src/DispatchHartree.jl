@@ -14,6 +14,9 @@ for (name, abbr) in Dimensioned
     DAA = Symbol("$(name)AxisArray")
     DDA = Symbol("$(name)DenseArray")
     DA = Symbol("$(name)Array")
+    if abbr == :σ
+       abbr = :σₑ
+    end
     @eval begin
         const $name = Dimensions.$name{T, typeof(UH.$abbr)} where T
         const $DAA = Dimensions.$DAA{T, N, typeof(UH.$abbr)} where N where T
@@ -22,7 +25,7 @@ for (name, abbr) in Dimensioned
     end
 end
 
-""" Dimenional dispatch types for scalars """
+""" Dimensional dispatch types for scalars """
 module Scalars
     using ...Dispatch: Dimensioned, Hartree
     for (name, abbr) in Dimensioned
@@ -35,7 +38,7 @@ module Scalars
     const ϵ = Eₕ
 end
 
-""" Dimenional dispatch types for Arrays """
+""" Dimensional dispatch types for Arrays """
 module Arrays
     using ...Dispatch: Dimensioned, Hartree
     for (name, abbr) in Dimensioned

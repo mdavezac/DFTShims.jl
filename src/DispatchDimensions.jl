@@ -16,6 +16,8 @@ for (name, abbr) in Dimensioned
     DAA = Symbol("$(name)AxisArray")
     DDA = Symbol("$(name)DenseArray")
     DA = Symbol("$(name)Array")
+    abbr = ifelse(abbr == :σ, :σₑ, abbr)
+
     @eval begin
         const $name = Quantity{T, typeof(dimension(UH.$abbr)), U} where U where T
         const $DAA = DFTAxisArray{$name{T, U}, N, A} where U where A where N where T
