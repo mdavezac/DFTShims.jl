@@ -8,6 +8,8 @@ using AxisArrays
 using Unitful
 using ..UnitfulHartree
 using ..Dispatch
+import AxisArrays: axes
+
 const DD = Dispatch.Dimensions
 const DH = Dispatch.Hartree
 
@@ -27,7 +29,7 @@ has_axis(array::Type{<:AxisArray}, axis::Type{<:Axis}) =
 has_axis(a::AxisArray, axis_type::Type{<:Axis}) = has_axis(typeof(a), axis_type)
 has_axis(array::Type{<:AxisArray}, name::Symbol) = has_axis(array, Axis{name})
 has_axis(a::AxisArray, name::Symbol) = has_axis(typeof(a), name)
-    
+
 
 """ Spin axis should have this type """
 const SpinAxis = Axis{:spin, Q} where {Q <: Tuple{T, T, Vararg{T}} where T}
@@ -85,17 +87,18 @@ struct SpinAware <: SpinCategory end
 """ Traits for unpolarized inputs """
 struct SpinDegenerate <: SpinCategory end
 
-""" Looks at axes to figure out the spin category
-
-- no spin-axis -> SpinDegenerate
-- fastest changing dimension -> ColinearSpinFirst
-- `n`th dim -> ColinearSpin{n}
-
-"""
+#TODO: include this again after https://github.com/JuliaLang/julia/pull/28875
+# """ Looks at axes to figure out the spin category
+#
+# - no spin-axis -> SpinDegenerate
+# - fastest changing dimension -> ColinearSpinFirst
+# - `n`th dim -> ColinearSpin{n}
+#
+# """
 (::Type{SpinCategory})(array::AxisArray) = SpinCategory(axes(array))
 @generated (::Type{SpinCategory})(ax::Tuple{Axis, Vararg{Axis}}) = begin
     index = findfirst(is_spin_polarized, ax.parameters)
-    if index == 0
+    if index == nothing
         :(SpinDegenerate())
     elseif index == length(ax.parameters)
         :(ColinearSpinLast())
@@ -104,19 +107,20 @@ struct SpinDegenerate <: SpinCategory end
     end
 end
 (::Type{SpinCategory})(S::SpinCategory) = S
-""" ColinearSpin defaults to settings spin axis in last position
-
-However, if the spin axis is already given, functions following this traits should not move
-it.
-"""
+#TODO: include this again after https://github.com/JuliaLang/julia/pull/28875
+# """ ColinearSpin defaults to settings spin axis in last position
+#
+# However, if the spin axis is already given, functions following this traits should not move
+# it.
+# """
 (::Type{ColinearSpin})() = ColinearSpin{:end}()
 
 """ Supertype of all functional categories """
 abstract type FunctionalCategory end
 """ Trait identifying the LDA functional category """
-type LDA <: FunctionalCategory end
+struct LDA <: FunctionalCategory end
 """ Trait identifying the LDA functional category """
-type GGA <: FunctionalCategory end
+struct GGA <: FunctionalCategory end
 
 """
 Same as Unitful.dimension but for still abstract quantities
@@ -161,14 +165,14 @@ components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::SpinDegenerate) = (:∂ρ�
 components(::typeof(dimension(UH.ρ)), ::ColinearSpin) = :α, :β
 components(::typeof(dimension(UH.ϵ)), ::ColinearSpin) = :α, :β
 components(::typeof(dimension(UH.∂ϵ_∂ρ)), ::ColinearSpin) = :∂α, :∂β
-components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::ColinearSpin) = :∂α², :∂α∂β, :∂²β 
+components(::typeof(dimension(UH.∂²ϵ_∂ρ²)), ::ColinearSpin) = :∂α², :∂α∂β, :∂²β
 components(::typeof(dimension(UH.∂³ϵ_∂ρ³)), ::ColinearSpin) = :∂α³, :∂α∂β², :∂α∂β², :∂β³
 components(::typeof(dimension(UH.σₑ)), ::ColinearSpin) = :σαα, :σαβ, :σββ
 components(::typeof(dimension(UH.∂ϵ_∂σ)), ::ColinearSpin) = :∂σαα, :∂σαβ, :∂σββ
-components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::ColinearSpin) = 
+components(::typeof(dimension(UH.∂²ϵ_∂ρ∂σ)), ::ColinearSpin) =
     :∂α∂σαα, :∂α∂σαβ, :∂α∂σββ, :∂β∂σαα, :∂β∂σαβ, :∂β∂σββ
 components(::typeof(dimension(UH.∂²ϵ_∂σ²)), ::ColinearSpin) =
-    :∂σαα², :∂σαα∂σαβ, :∂σαα∂σββ, :∂σαβ², :∂σαβσββ, :∂σββ² 
+    :∂σαα², :∂σαα∂σαβ, :∂σαα∂σββ, :∂σαβ², :∂σαβσββ, :∂σββ²
 components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::ColinearSpin) = (
     :∂α²∂σαα, :∂α²∂σαβ, :∂α²∂σββ,
     :∂α∂β∂σαα, :∂α∂β∂σαβ, :∂α∂β∂σββ,
@@ -176,10 +180,10 @@ components(::typeof(dimension(UH.∂³ϵ_∂ρ²∂σ)), ::ColinearSpin) = (
 )
 components(::typeof(dimension(UH.∂³ϵ_∂ρ∂σ²)), ::ColinearSpin) = (
     :∂α∂σαα², :∂α∂σαα∂σαβ, :∂α∂σαα∂σββ, :∂α∂σαβ², :∂α∂σαβσββ, :∂α∂σββ²,
-    :∂β∂σαα², :∂β∂σαα∂σαβ, :∂β∂σαα∂σββ, :∂β∂σαβ², :∂β∂σαβσββ, :∂β∂σββ² 
+    :∂β∂σαα², :∂β∂σαα∂σαβ, :∂β∂σαα∂σββ, :∂β∂σαβ², :∂β∂σαβσββ, :∂β∂σββ²
 )
 components(::typeof(dimension(UH.∂³ϵ_∂σ³)), ::ColinearSpin) = (
-    :∂σαα³, :∂σαα²∂σαβ, :∂σαα²∂σββ, :∂σαα∂σαβ², :∂σαα∂σαβ∂σββ, :∂σαα∂σββ², 
+    :∂σαα³, :∂σαα²∂σαβ, :∂σαα²∂σββ, :∂σαα∂σαβ², :∂σαα∂σαβ∂σββ, :∂σαα∂σββ²,
     :∂σαβ³, :∂σαβ²∂σββ, :∂σαβ∂σββ², :∂σββ³
 )
 components(::typeof(dimension(UH.σₑ)), ::SpinDegenerate) = (:σ,)

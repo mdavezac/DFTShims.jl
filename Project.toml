@@ -1,0 +1,9 @@
+name = "DFTShims"
+uuid = "a001f356-ac7d-5fb9-adbb-c1ca3b4a7e48"
+version = "0.0.0"
+
+[deps]
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
+ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
+DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"

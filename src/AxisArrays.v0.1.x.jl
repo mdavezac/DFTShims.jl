@@ -18,13 +18,14 @@ Base.copy!(dest::AxisArray{TT, N, AA, AAs}, source::AxisArray{T, N, A, As},
         copy!(dest.data, source.data)
     else
         perm = indexin(collect(axisnames(dest)), collect(axisnames(source)))
-        any(iszero(x) for x in perm) &&
+        any(x==nothing for x in perm) &&
                 throw(ArgumentError("""
                     Axes of source and destination do not match.
                     Use copy!(A, B, false) if you want to ignore axis information.
                     """))
 
-        permutedims!(dest.data, source.data, perm)
+        #REVIEW: not sure if this is correct?
+        permutedims!(dest.data, convert.(TT, source.data), perm)
     end
     dest
 end
