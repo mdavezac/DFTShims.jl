@@ -11,6 +11,7 @@ using ..Traits: components, ColinearSpin, SpinDegenerate, SpinCategory, Colinear
                 SpinAware
 using ..Dispatch
 export wrap
+import AxisArrays: axes
 
 macro lintpragma(s) end
 @lintpragma("Ignore unused args")
@@ -98,7 +99,7 @@ for extension in [:zeros, :ones, :rand]
     @eval begin
         """
         Creates an array for the given DFT quantity
-        
+
         The spin axis is automatically added if required. Neither `dims` nor `ax` should
         include the spin dimension.
         """
@@ -227,7 +228,7 @@ end
 
 Base.reinterpret(T::Type{<: DD.Scalars.All}, ::SpinDegenerate, array::DenseArray) =
     AxisArray(reinterpret(concretize_type(T, array), array), axes(array))
-Base.reinterpret(T::Type{<: DD.Scalars.All}, ::ColinearSpinFirst, array::DenseArray) = 
+Base.reinterpret(T::Type{<: DD.Scalars.All}, ::ColinearSpinFirst, array::DenseArray) =
     AxisArray(reinterpret(concretize_type(T, array), array),
               Axis{:spin}(components(T, ColinearSpinFirst())), Base.tail(axes(array))...)
 Base.reinterpret(T::Type{<: DD.Scalars.All}, C::ColinearSpin, array::DenseArray) =

@@ -1,6 +1,7 @@
 using DFTShims: ColinearSpin, SpinDegenerate, is_spin_polarized
 using AxisArrays
 using Unitful
+import AxisArrays: axes
 
 const DH = DFTShims.Dispatch.Hartree
 const Dρ = DH.Scalars.ρ
@@ -62,7 +63,7 @@ end
     actual = @inferred replace_spin_axis(Dρ, ColinearSpinLast(), (4, 3, 2), saxes)
     @test actual == ((4, 3, 2), (AXES..., Axis{:spin}((:α, :β))))
 
-    saxes = Axis{:spin}((:u, :d)), AXES... 
+    saxes = Axis{:spin}((:u, :d)), AXES...
     actual = @inferred replace_spin_axis(Dρ, ColinearSpinFirst(), (2, 3, 4), saxes)
     @test actual == ((2, 3, 4), (Axis{:spin}((:α, :β)), AXES...))
     actual = @inferred replace_spin_axis(Dρ, ColinearSpinLast(), (2, 3, 4), saxes)
@@ -97,7 +98,7 @@ end
     @test eltype(ρ) == Dρ{Int64}
     @test is_spin_polarized(ρ)
     @test @inferred(SpinCategory(ρ)) == ColinearSpinFirst()
-    
+
     ∂ϵ_∂ρ = @inferred rand(typeof(1u"eV*nm^3"), ColinearSpin{length(AXES)}(), AXES)
     @test axes(∂ϵ_∂ρ, length(AXES)) isa Axis{:spin}
     @test ndims(∂ϵ_∂ρ) == length(AXES) + 1
@@ -121,7 +122,7 @@ end
     @test eltype(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware())) == typeof(0u"∂²ϵ_∂σ²")
     @test is_spin_polarized(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware()))
     @test length(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware())[Axis{:spin}]) == 6
-    @test find(x -> typeof(x) <: Axis{:spin}, 
+    @test find(x -> typeof(x) <: Axis{:spin},
                axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware()))) == [length(AXES) + 1]
     @test axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ²{Int64}, SpinAware()))[1:end - 1] == AXES
     @test axes(zeros(ρ, DH.Scalars.∂²ϵ_∂σ², ColinearSpinFirst()))[2:end] == AXES
@@ -197,4 +198,3 @@ end
     @test is_spin_polarized(wrap(DD.Scalars.ρ, ColinearSpinFirst(), [1 2 3; 4 5 6]))
     @test_throws ArgumentError wrap(DD.Scalars.ρ, ColinearSpin(), [1 2 3; 4 5 6])
 end
-
